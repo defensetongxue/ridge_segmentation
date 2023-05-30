@@ -35,7 +35,6 @@ def val_epoch(model, val_loader, loss_function, device):
             loss = loss_function(outputs, targets)
 
             running_loss += loss.item()
-
     return running_loss / len(val_loader)
 
 

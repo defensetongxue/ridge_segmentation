@@ -19,7 +19,7 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
 model = get_instance(models, args.model)
-criterion=get_instance(losses,args.Loss)
+criterion=get_instance(losses,args.configs.Loss)
 if os.path.isfile(args.from_checkpoint):
     print(f"loadding the exit checkpoints {args.from_checkpoint}")
     model.load_state_dict(

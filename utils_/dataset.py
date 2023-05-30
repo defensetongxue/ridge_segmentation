@@ -30,20 +30,19 @@ class ridge_segmentataion_dataset(Dataset):
         img = Image.open(data['img_path']).convert('RGB')
         gt = Image.open(data['mask_path'])
 
-        # Transform mask back to 0,1 tensor
-        gt = torch.from_numpy(np.array(gt, np.int32, copy=False))
-        gt[gt != 0] = 1
-
+        
         if self.split == "train" :
             seed = torch.seed()
             torch.manual_seed(seed)
             img = self.transforms(img)
             torch.manual_seed(seed)
             gt = self.transforms(gt)
-
+        # Transform mask back to 0,1 tensor
+        gt = torch.from_numpy(np.array(gt, np.float32, copy=False))
+        gt[gt != 0] = 1.
         img = self.img_transforms(img)
 
-        return img, gt,data['class']
+        return img, gt.squeeze(),data['class']
 
     def __len__(self):
         return len(self.annote)

@@ -68,7 +68,7 @@ def get_config():
                         help='stride in cleansing.')
     
     # Model
-    parser.add_argument('--model', type=str, default='hrnet',
+    parser.add_argument('--model', type=str, default='FR_UNet',
                         help='Name of the model architecture to be used for training.')
     
     # train and test
