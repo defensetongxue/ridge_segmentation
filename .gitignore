@@ -1,0 +1,11 @@
+__pycache__
+*.pth
+*.pt
+experiments
+checkpoints
+*.ipynb
+tmp.*
+.ipynb_checkpoints
+*.out
+ring.py
+.vscode
