@@ -46,7 +46,7 @@ def generate_segmentation_mask(data_path, patch_size, stride):
                     Image.fromarray((patch_mask * 255).astype(np.uint8)).save(mask_path)
 
                     # Get class
-                    class_annote = data["class"] if torch.max(patch_mask.flatten()) > 0 else 0
+                    class_annote = data["class"] if patch_mask.max() > 0 else 0
 
                     annotate.append({
                         "img_path": img_path,
