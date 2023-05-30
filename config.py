@@ -59,7 +59,7 @@ def get_config():
                         help='Path to the target folder to store the processed datasets.')
     parser.add_argument('--json_file_dict', type=str, default="./json_src",
                         help='Path to the source folder containing original datasets.')
-    parser.add_argument('--generate_ridge', type=bool, default=False,
+    parser.add_argument('--generate_ridge', type=bool, default=True,
                         help='if generate the ridge cooridinate from json src.')
     # Cleansing
     parser.add_argument('--patch_size', type=int, default=256,

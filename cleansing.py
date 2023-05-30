@@ -173,7 +173,8 @@ if __name__=='__main__':
     
     # cleansing
     if args.generate_ridge:
+        
         annotations=parse_json_file(args.json_file_dict,args.path_tar)
         split_data(args.path_tar,annotations)
-    
+        print(f"generate ridge_coordinate in {os.path.join(args.path_tar,'ridge')}")
     generate_segmentation_mask(args.path_tar,args.patch_size,args.stride)
