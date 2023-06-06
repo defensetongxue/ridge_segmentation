@@ -3,7 +3,7 @@ import os
 import torch
 from config import get_config
 from torchvision import transforms
-from utils_ import get_instance,visual_mask,patchtify
+from utils_ import get_instance,visual_mask,visual_points
 import models
 from PIL import Image
 from scipy.ndimage import zoom
@@ -30,6 +30,7 @@ model.eval()
 
 visual_dir = os.path.join(args.result_path, 'visual')
 os.makedirs(visual_dir, exist_ok=True)
+os.makedirs(os.path.join(args.result_path,'visual_points'),exist_ok=True)
 # Test the model and save visualizations
 with open(os.path.join(data_path,'ridge','test.json'),'r') as f:
     test_data=json.load(f)[:TEST_CNT]
@@ -52,6 +53,9 @@ with torch.no_grad():
         
         mask=torch.sigmoid(output_img).numpy()
         mask=zoom(mask,2)
-        visual_mask(img_path,mask,os.path.join(result_path,img_name))
+        # visual_mask(img_path,mask,os.path.join(visual_dir,img_name))
+        if True:
+            visual_points(img_path,mask,
+                          save_path= os.path.join(args.result_path,'visual_points',img_name))
 end=time.time()
 print(f"Finished testing. Time cost {(end-begin)/100:.4f}")
