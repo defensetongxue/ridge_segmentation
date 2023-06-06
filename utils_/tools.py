@@ -1,6 +1,6 @@
 
 import os
-import pickle
+from torchvision import transforms
 import random
 import cv2
 import numpy as np
@@ -123,31 +123,6 @@ class Fix_RandomRotation(object):
         return format_string
 
 
-def recompone_overlap(preds, img_h, img_w, stride_h, stride_w):
-    assert (len(preds.shape) == 4)
-    assert (preds.shape[1] == 1 or preds.shape[1] == 3)
-    patch_h = preds.shape[2]
-    patch_w = preds.shape[3]
-    N_patches_h = (img_h - patch_h) // stride_h + 1
-    N_patches_w = (img_w - patch_w) // stride_w + 1
-    N_patches_img = N_patches_h * N_patches_w
-    assert (preds.shape[0] % N_patches_img == 0)
-    N_full_imgs = preds.shape[0] // N_patches_img
-    full_prob = np.zeros((N_full_imgs, preds.shape[1], img_h, img_w))
-    full_sum = np.zeros((N_full_imgs, preds.shape[1], img_h, img_w))
-    k = 0
-    for i in range(N_full_imgs):
-        for h in range((img_h - patch_h) // stride_h + 1):
-            for w in range((img_w - patch_w) // stride_w + 1):
-                full_prob[i, :, h * stride_h:(h * stride_h) + patch_h, w * stride_w:(w * stride_w) + patch_w] += preds[
-                    k]
-                full_sum[i, :, h * stride_h:(h * stride_h) + patch_h,
-                         w * stride_w:(w * stride_w) + patch_w] += 1
-                k += 1
-    assert (k == preds.shape[0])
-    assert (np.min(full_sum) >= 1.0)
-    final_avg = full_prob / full_sum
-    return  final_avg
 
 def visual_mask(image_path, mask,save_path='./tmp.jpg'):
     # Open the image file.
@@ -155,6 +130,7 @@ def visual_mask(image_path, mask,save_path='./tmp.jpg'):
 
     # Create a blue mask.
     mask_np = np.array(mask)
+    print(mask.shape)
     mask_blue = np.zeros((mask_np.shape[0], mask_np.shape[1], 4), dtype=np.uint8)  # 4 for RGBA
     mask_blue[..., 2] = 255  # Set blue channel to maximum
     mask_blue[..., 3] = (mask_np * 127.5).astype(np.uint8)  # Adjust alpha channel according to the mask value
@@ -170,3 +146,14 @@ def visual_mask(image_path, mask,save_path='./tmp.jpg'):
 
     # Save the image with mask to the specified path.
     rgb_image.save(save_path)
+
+def patchtify(img_tensor,patch_size,stride):
+    h, w = img_tensor.shape[1:]
+    print(img_tensor.shape)
+    bottom_pad = (patch_size - h % patch_size) % patch_size
+    right_pad = (patch_size - w % patch_size) % patch_size
+    padding = (0,  0, right_pad,bottom_pad)  # Padding format: #(left,top,right,bottom))
+    img_padded = transforms.functional.pad(img_tensor, padding)
+    patches = img_padded.unfold(1, patch_size, stride).unfold(2, patch_size, stride)
+    patches = patches.contiguous().view(-1, 3, patch_size, patch_size)
+    return patches,img_padded.shape[-2:]

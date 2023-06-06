@@ -3,11 +3,13 @@ import os
 import torch
 from config import get_config
 from torchvision import transforms
-from utils_ import recompone_overlap,get_instance,visual_mask
+from utils_ import get_instance,visual_mask,patchtify
 import models
 from PIL import Image
+from scipy.ndimage import zoom
 # Parse arguments
-TEST_CNT=10
+TEST_CNT=100
+import time
 args = get_config()
 
 # Init the result file to store the pytorch model and other mid-result
@@ -32,24 +34,24 @@ os.makedirs(visual_dir, exist_ok=True)
 with open(os.path.join(data_path,'ridge','test.json'),'r') as f:
     test_data=json.load(f)[:TEST_CNT]
 img_transforms=transforms.Compose([
+            transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
+begin=time.time()
 with torch.no_grad():
     for data in test_data:
         img_path=data['image_path']
         img_name=data['image_name']
         img=Image.open(img_path)
-        img=img_transforms(img)
+        img=img_transforms(img).unsqueeze(0)
 
-        patch_size = args.patch_size
-        stride = patch_size
-        patches = img.unfold(2, patch_size, stride).unfold(3, patch_size, stride)
-        patches = patches.permute(0, 2, 3, 1, 4, 5).reshape(-1, 3, patch_size, patch_size)
-        output_patches = model(patches.to(device))
-
+        output_img = model(img.to(device)).cpu()
         # Resize the output to the original image size
-        mask = recompone_overlap(output_patches.cpu().numpy(), img.shape[2], img.shape[3], stride, stride)
+        
+        mask=torch.sigmoid(output_img).numpy()
+        mask=zoom(mask,2)
         visual_mask(img_path,mask,os.path.join(result_path,img_name))
-print("Finished testing")
+end=time.time()
+print(f"Finished testing. Time cost {(end-begin)/100:.4f}")
