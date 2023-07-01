@@ -5,12 +5,33 @@ from utils_ import generate_diffusion_heatmap
 import torchvision.transforms as transforms
 from PIL import Image
 import numpy as np
+def generate_ridge_diffusion(data_path,):
+    os.makedirs(os.path.join(data_path,'ridge_diffusion'),exist_ok=True)
+    os.system(f"rm -rf {os.path.join(data_path,'ridge_diffusion')}/*")
+    splits=['train','val','test']
+    for split in splits:
+        with open(os.path.join(data_path,'ridge',f'{split}.json'),'r') as f:
+            data_list=json.load(f)
+        new_data_list=[]
+        for data in data_list:
+            mask = generate_diffusion_heatmap(data['image_path'],data['ridge_coordinate'], factor=0.5, Gauss=False)
+            mask_save_name=data['image_name']/split('.')[0]+'.png'
+            mask_save_path=os.path.join(data_path,'ridge_diffusion',mask_save_name)
+            Image.fromarray((mask * 255).astype(np.uint8)).save(mask_save_path)
+            data['diffusion_mask_path']=mask_save_path
+            new_data_list.append(data)
+        with open(os.path.join(data_path,'ridge',f'{split}.json'),'w') as f:
+            json.dump(new_data_list,f)
 
 def generate_segmentation_mask(data_path, patch_size, stride):
     # Generate path_image folder
     os.makedirs(os.path.join(data_path,'ridge_seg','images'),exist_ok=True)
     os.makedirs(os.path.join(data_path,'ridge_seg','masks'),exist_ok=True)
     os.makedirs(os.path.join(data_path,'ridge_seg','annotations'),exist_ok=True)
+    
+    os.system(f"rm -rf {os.path.join(data_path,'ridge_seg','images')}/*")
+    os.system(f"rm -rf {os.path.join(data_path,'ridge_seg','masks')}/*")
+    os.system(f"rm -rf {os.path.join(data_path,'ridge_seg','annotations')}/*")
 
     splits=['train','val']
     for split in splits:
@@ -19,7 +40,8 @@ def generate_segmentation_mask(data_path, patch_size, stride):
 
         annotate=[]
         for  data in data_list:
-            mask = generate_diffusion_heatmap(data['image_path'],data['ridge_coordinate'], factor=0.5, Gauss=False)
+            mask = Image.open(data['diffusion_mask_path'])
+            mask[mask!=0]=1
 
             # Load image and mask
             img = Image.open(data['image_path']).convert("RGB")
@@ -173,8 +195,9 @@ if __name__=='__main__':
     
     # cleansing
     if args.generate_ridge:
-        
         annotations=parse_json_file(args.json_file_dict,args.path_tar)
         split_data(args.path_tar,annotations)
         print(f"generate ridge_coordinate in {os.path.join(args.path_tar,'ridge')}")
+    if args.generate_diffusion_mask:
+        generate_ridge_diffusion(args.path_tar)
     generate_segmentation_mask(args.path_tar,args.patch_size,args.stride)

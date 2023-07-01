@@ -61,6 +61,9 @@ def get_config():
                         help='Path to the source folder containing original datasets.')
     parser.add_argument('--generate_ridge', type=bool, default=False,
                         help='if generate the ridge cooridinate from json src.')
+    parser.add_argument('--generate_diffusion_mask', type=bool, default=True,
+                        help='if generate the ridge cooridinate from json src.')
+    
     # Cleansing
     parser.add_argument('--patch_size', type=int, default=256,
                         help='patch size in cleansing .')
