@@ -29,7 +29,8 @@ class ridge_segmentataion_dataset(Dataset):
         # Read the image and mask
         img = Image.open(data['img_path']).convert('RGB')
         gt = Image.open(data['mask_path'])
-
+        img=transforms.Resize((400,400))(img)
+        gt=transforms.Resize((400,400))(gt)
         
         if self.split == "train" :
             seed = torch.seed()
@@ -41,7 +42,7 @@ class ridge_segmentataion_dataset(Dataset):
         gt = torch.from_numpy(np.array(gt, np.float32, copy=False))
         gt[gt != 0] = 1.
         img = self.img_transforms(img)
-
+        
         return img, gt.squeeze(),data['class']
 
     def __len__(self):

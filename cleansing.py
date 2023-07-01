@@ -8,48 +8,35 @@ import numpy as np
 
 def generate_segmentation_mask(data_path, patch_size, stride):
     # Generate path_image folder
-    os.makedirs(os.path.join(data_path,'ridge_seg','images'),exist_ok=True)
+    # os.makedirs(os.path.join(data_path,'ridge_seg','images'),exist_ok=True)
     os.makedirs(os.path.join(data_path,'ridge_seg','masks'),exist_ok=True)
     os.makedirs(os.path.join(data_path,'ridge_seg','annotations'),exist_ok=True)
-
+    os.system('rm -rf ')
     splits=['train','val']
     for split in splits:
         with open(os.path.join(data_path,'ridge',f'{split}.json'),'r') as f:
-            data_list=json.load(f)
-
+            ridge_data_list=json.load(f)
+        ridge_map={ridge_data_list[i]['image_name']:i for i in range(len(ridge_data_list))}
         annotate=[]
+        with open(os.path.join(data_path,'annotations',f'{split}.json'),'r') as f:
+            data_list =json.load(f)
         for  data in data_list:
-            mask = generate_diffusion_heatmap(data['image_path'],data['ridge_coordinate'], factor=0.5, Gauss=False)
-
+            if data['image_name'] in ridge_map.keys():
+                id_cnt=ridge_map[data['image_name']]
+                mask = generate_diffusion_heatmap(data['image_path'],ridge_data_list[id_cnt]['ridge_coordinate'], factor=0.5, Gauss=False)
+            else:
+                image=Image.open(data['image_path'])
+                h,w=image.size
+                mask=np.zeros((w,h))
             # Load image and mask
-            img = Image.open(data['image_path']).convert("RGB")
-            img_tensor = transforms.ToTensor()(img)
-            mask_tensor = torch.from_numpy(mask)
-
-            # Unfold to patches
-            patches_img = img_tensor.unfold(1, patch_size, stride).unfold(2, patch_size, stride)
-            patches_mask = mask_tensor.unfold(0, patch_size, stride).unfold(1, patch_size, stride)
-
-            # Loop through all patches
-            for i in range(patches_img.shape[1]):
-                for j in range(patches_img.shape[2]):
-                    patch_img = patches_img[:,i,j].permute(1, 2, 0).numpy()
-                    patch_mask = patches_mask[i,j].numpy()
-
-                    # Save image patch
-                    patch_name=f"{data['image_name'].split('.')[0]}_{i}_{j}"
-                    img_path = os.path.join(data_path, 'ridge_seg', 'images', f"{patch_name}.jpg")
-                    Image.fromarray((patch_img * 255).astype(np.uint8)).save(img_path)
-
-                    # Save mask patch
-                    mask_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{patch_name}.png")
-                    Image.fromarray((patch_mask * 255).astype(np.uint8)).save(mask_path)
-
-                    # Get class
-                    class_annote = data["class"] if patch_mask.max() > 0 else 0
-
-                    annotate.append({
-                        "img_path": img_path,
+            image_id=data['image_name'].split('.')[0]
+            # Save mask patch
+            mask_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{image_id}.png")
+            Image.fromarray((mask * 255).astype(np.uint8)).save(mask_path)
+            # Get class
+            class_annote = data["class"] 
+            annotate.append({
+                        "img_path": data['image_path'],
                         "mask_path": mask_path,
                         "class": class_annote
                     })
