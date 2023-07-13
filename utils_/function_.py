@@ -8,7 +8,9 @@ def train_epoch(model, optimizer, train_loader, loss_function, device):
     running_loss = 0.0
 
     for inputs, targets,meta in train_loader:
-        inputs = inputs.to(device)
+        x,pos=inputs
+        inputs=(x.to(device),pos.to(device))
+        # inputs = inputs.to(device)
         targets = targets.to(device)
 
         optimizer.zero_grad()
@@ -28,7 +30,9 @@ def val_epoch(model, val_loader, loss_function, device):
 
     with torch.no_grad():
         for inputs, targets,meta in val_loader:
-            inputs = inputs.to(device)
+            x,pos=inputs
+            inputs=(x.to(device),pos.to(device))
+            # inputs = inputs.to(device)
             targets = targets.to(device)
 
             outputs = model(inputs)

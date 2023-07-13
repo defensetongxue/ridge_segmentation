@@ -5,6 +5,7 @@ from utils_ import generate_diffusion_heatmap
 import torchvision.transforms as transforms
 from PIL import Image
 import numpy as np
+import torch.nn.functional as F
 def generate_ridge_diffusion(data_path,):
     os.makedirs(os.path.join(data_path,'ridge_diffusion'),exist_ok=True)
     os.system(f"rm -rf {os.path.join(data_path,'ridge_diffusion')}/*")
@@ -15,7 +16,7 @@ def generate_ridge_diffusion(data_path,):
         new_data_list=[]
         for data in data_list:
             mask = generate_diffusion_heatmap(data['image_path'],data['ridge_coordinate'], factor=0.5, Gauss=False)
-            mask_save_name=data['image_name']/split('.')[0]+'.png'
+            mask_save_name=data['image_name'].split('.')[0]+'.png'
             mask_save_path=os.path.join(data_path,'ridge_diffusion',mask_save_name)
             Image.fromarray((mask * 255).astype(np.uint8)).save(mask_save_path)
             data['diffusion_mask_path']=mask_save_path
@@ -28,10 +29,12 @@ def generate_segmentation_mask(data_path, patch_size, stride):
     os.makedirs(os.path.join(data_path,'ridge_seg','images'),exist_ok=True)
     os.makedirs(os.path.join(data_path,'ridge_seg','masks'),exist_ok=True)
     os.makedirs(os.path.join(data_path,'ridge_seg','annotations'),exist_ok=True)
+    os.makedirs(os.path.join(data_path,'ridge_seg','position_embed'),exist_ok=True)
     
     os.system(f"rm -rf {os.path.join(data_path,'ridge_seg','images')}/*")
     os.system(f"rm -rf {os.path.join(data_path,'ridge_seg','masks')}/*")
     os.system(f"rm -rf {os.path.join(data_path,'ridge_seg','annotations')}/*")
+    os.system(f"rm -rf {os.path.join(data_path,'ridge_seg','position_embed')}/*")
 
     splits=['train','val']
     for split in splits:
@@ -41,23 +44,27 @@ def generate_segmentation_mask(data_path, patch_size, stride):
         annotate=[]
         for  data in data_list:
             mask = Image.open(data['diffusion_mask_path'])
-            mask[mask!=0]=1
+            mask_tensor=torch.from_numpy(np.array(mask,np.float32, copy=False))
+            mask_tensor[mask_tensor!=0]=1
 
-            # Load image and mask
+            # Load image, position_embed and mask
             img = Image.open(data['image_path']).convert("RGB")
             img_tensor = transforms.ToTensor()(img)
-            mask_tensor = torch.from_numpy(mask)
 
+            pos_path=os.path.join(data_path,'pos_embed',data['image_name'].split('.')[0]+'.pt')
+            pos_embed=torch.load(pos_path)
+            pos_embed=F.interpolate(pos_embed[None,None,:,:], size=mask_tensor.shape, mode='nearest')
+            pos_embed=pos_embed.squeeze()
             # Unfold to patches
             patches_img = img_tensor.unfold(1, patch_size, stride).unfold(2, patch_size, stride)
             patches_mask = mask_tensor.unfold(0, patch_size, stride).unfold(1, patch_size, stride)
-
+            pos_embed_patches=pos_embed.unfold(0, patch_size, stride).unfold(1, patch_size, stride) 
             # Loop through all patches
             for i in range(patches_img.shape[1]):
                 for j in range(patches_img.shape[2]):
                     patch_img = patches_img[:,i,j].permute(1, 2, 0).numpy()
                     patch_mask = patches_mask[i,j].numpy()
-
+                    pos_embed_patch=pos_embed_patches[i,j].numpy()
                     # Save image patch
                     patch_name=f"{data['image_name'].split('.')[0]}_{i}_{j}"
                     img_path = os.path.join(data_path, 'ridge_seg', 'images', f"{patch_name}.jpg")
@@ -67,12 +74,16 @@ def generate_segmentation_mask(data_path, patch_size, stride):
                     mask_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{patch_name}.png")
                     Image.fromarray((patch_mask * 255).astype(np.uint8)).save(mask_path)
 
+                    # Save pos embed
+                    pos_embed_path=os.path.join(data_path,'ridge_seg','position_embed',f'{patch_name}.png')
+                    Image.fromarray((pos_embed_patch* 255).astype(np.uint8)).save(pos_embed_path)
                     # Get class
                     class_annote = data["class"] if patch_mask.max() > 0 else 0
 
                     annotate.append({
                         "img_path": img_path,
                         "mask_path": mask_path,
+                        'pos_embed_path':pos_embed_path,
                         "class": class_annote
                     })
 
@@ -199,5 +210,7 @@ if __name__=='__main__':
         split_data(args.path_tar,annotations)
         print(f"generate ridge_coordinate in {os.path.join(args.path_tar,'ridge')}")
     if args.generate_diffusion_mask:
+        print("begin generate diffusion map")
         generate_ridge_diffusion(args.path_tar)
+        print("finished")
     generate_segmentation_mask(args.path_tar,args.patch_size,args.stride)

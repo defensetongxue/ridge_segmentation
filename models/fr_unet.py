@@ -178,8 +178,9 @@ class FR_UNet(nn.Module):
         self.fuse = nn.Conv2d(
             5, num_classes, kernel_size=1, padding=0, bias=True)
         self.apply(InitWeights_He)
-
-    def forward(self, x):
+        self.pos_embed= nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1)
+    def forward(self, x_pos):
+        x,pos=x_pos
         x1_3, x_down1_3 = self.block1_3(x)
         x1_2, x_down1_2 = self.block1_2(x1_3)
         x2_2, x_up2_2, x_down2_2 = self.block2_2(x_down1_3)
@@ -203,5 +204,7 @@ class FR_UNet(nn.Module):
                       self.final3(x11)+self.final4(x12)+self.final5(x13))/5
         else:
             output = self.final5(x13)
+        pos_embed=self.pos_embed(pos.unsqueeze(1))
+        output= output.squeeze()+pos_embed.squeeze()
 
-        return output.squeeze()
+        return output
