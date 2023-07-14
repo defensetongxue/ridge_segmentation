@@ -108,6 +108,8 @@ def parse_json(input_data,label_class=0,image_dict="../autodl-tmp/images"):
         "plus_coordinate": [],
         "pre_plus_number": 0,
         "pre_plus_coordinate": [],
+        "vessel_abnormal_number":0,
+        "vessel_abnormal_coordinate":[],
         "class": label_class
     }
 
@@ -131,6 +133,10 @@ def parse_json(input_data,label_class=0,image_dict="../autodl-tmp/images"):
                 new_data["pre_plus_number"] += 1
                 new_data["pre_plus_coordinate"].append((x, y))
 
+            if label_class==3 and label =='Stage':
+                new_data["vessel_abnormal_number"]+=1
+                new_data['vessel_abnormal_coordinate'].append((x,y))
+
     return new_data
 
 def parse_json_file(file_dict,data_path):
@@ -147,9 +153,11 @@ def parse_json_file(file_dict,data_path):
             continue
         with open(os.path.join(file_dict,file), 'r') as f:
             data = json.load(f)
-        
+        label_class=int(file[0])
+        if label_class==6:
+            continue
         for json_obj in data:
-            new_data=parse_json(json_obj,label_class=int(file[0]),
+            new_data=parse_json(json_obj,label_class=label_class,
                                 image_dict=os.path.join(data_path,'images'))
             if new_data["ridge_number"]>0:        
                 annotation.append(new_data)
@@ -213,4 +221,4 @@ if __name__=='__main__':
         print("begin generate diffusion map")
         generate_ridge_diffusion(args.path_tar)
         print("finished")
-    generate_segmentation_mask(args.path_tar,args.patch_size,args.stride)
+    # generate_segmentation_mask(args.path_tar,args.patch_size,args.stride)
