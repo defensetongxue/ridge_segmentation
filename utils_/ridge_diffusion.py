@@ -129,3 +129,21 @@ if __name__=='__main__':
                                        factor=0.5)
         # mask=heatmap2mask(heatmap,2)
         visual_mask(img_json['image_path'],mask,os.path.join('./visual',img_json['image_name']))
+
+def generate_ridge_diffusion(data_path):
+    os.makedirs(os.path.join(data_path,'ridge_diffusion'),exist_ok=True)
+    os.system(f"rm -rf {os.path.join(data_path,'ridge_diffusion')}/*")
+    splits=['train','val','test']
+    for split in splits:
+        with open(os.path.join(data_path,'ridge',f'{split}.json'),'r') as f:
+            data_list=json.load(f)
+        new_data_list=[]
+        for data in data_list:
+            mask = generate_diffusion_heatmap(data['image_path'],data['ridge_coordinate'], factor=0.5, Gauss=False)
+            mask_save_name=data['image_name'].split('.')[0]+'.png'
+            mask_save_path=os.path.join(data_path,'ridge_diffusion',mask_save_name)
+            Image.fromarray((mask * 255).astype(np.uint8)).save(mask_save_path)
+            data['diffusion_mask_path']=mask_save_path
+            new_data_list.append(data)
+        with open(os.path.join(data_path,'ridge',f'{split}.json'),'w') as f:
+            json.dump(new_data_list,f)

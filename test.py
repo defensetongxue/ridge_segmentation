@@ -6,6 +6,7 @@ from torchvision import transforms
 from utils_ import get_instance,visual_mask,visual_points
 import models
 from PIL import Image
+import torch.nn.functional as F
 from scipy.ndimage import zoom
 # Parse arguments
 TEST_CNT=100
@@ -33,29 +34,31 @@ os.makedirs(visual_dir, exist_ok=True)
 os.makedirs(os.path.join(args.result_path,'visual_points'),exist_ok=True)
 # Test the model and save visualizations
 with open(os.path.join(data_path,'ridge','test.json'),'r') as f:
-    test_data=json.load(f)[:TEST_CNT]
+    data_list=json.load(f)[:TEST_CNT]
 img_transforms=transforms.Compose([
-            transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
 begin=time.time()
 with torch.no_grad():
-    for data in test_data:
-        img_path=data['image_path']
-        img_name=data['image_name']
-        img=Image.open(img_path)
-        img=img_transforms(img).unsqueeze(0)
-
-        output_img = model(img.to(device)).cpu()
+    for data in data_list:
+        img = Image.open(data['image_path']).convert('RGB')
+        img_tensor = img_transforms(img)
+        pos_path=os.path.join(data_path,'pos_embed',data['image_name'].split('.')[0]+'.pt')
+        pos_embed=torch.load(pos_path)
+        pos_embed=F.interpolate(pos_embed[None,None,:,:], size=img_tensor.shape[-2:], mode='nearest')
+        pos_embed=pos_embed.squeeze()
+        
+        img=img_tensor.unsqueeze(0).to(device)
+        pos_embed=pos_embed.unsqueeze(0).to(device)
+        output_img = model((img,pos_embed)).cpu()
         # Resize the output to the original image size
         
         mask=torch.sigmoid(output_img).numpy()
-        mask=zoom(mask,2)
-        # visual_mask(img_path,mask,os.path.join(visual_dir,img_name))
+        visual_mask(data['image_path'],mask,os.path.join(visual_dir,data['image_name']))
         if True:
-            visual_points(img_path,mask,
-                          save_path= os.path.join(args.result_path,'visual_points',img_name))
+            visual_points(data['image_path'],mask,
+                          save_path= os.path.join(args.result_path,'visual_points',data['image_name']))
 end=time.time()
 print(f"Finished testing. Time cost {(end-begin)/100:.4f}")
