@@ -148,3 +148,4 @@ if __name__=='__main__':
         generate_ridge_diffusion(args.path_tar)
         print("finished")
     generate_segmentation_mask(args.path_tar,args.patch_size,args.stride)
+    generate_split(args.path_tar,args.split_name)
