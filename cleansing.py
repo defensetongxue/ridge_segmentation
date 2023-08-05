@@ -1,15 +1,17 @@
 import json
 import os
 import torch
-from utils_ import generate_ridge_diffusion
 import torchvision.transforms as transforms
 from PIL import Image
 import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
 
-
-def generate_segmentation_mask(data_path, patch_size, stride):
+import sys
+sys.path.append('..')
+from ROP_diagnoise import generate_ridge_diffusion
+from ROP_diagnoise import generate_ridge
+def generate_segmentation_mask(data_path, patch_size, stride,split_name='0'):
     # Generate path_image folder
     os.makedirs(os.path.join(data_path,'ridge_seg','images'),exist_ok=True)
     os.makedirs(os.path.join(data_path,'ridge_seg','masks'),exist_ok=True)
@@ -21,24 +23,24 @@ def generate_segmentation_mask(data_path, patch_size, stride):
     os.system(f"find {os.path.join(data_path,'ridge_seg','annotations')} -type f -delete")
     os.system(f"find {os.path.join(data_path,'ridge_seg','position_embed')} -type f -delete")
 
-    splits=['train','val']
-    for split in splits:
-        with open(os.path.join(data_path,'ridge',f'{split}.json'),'r') as f:
-            ridge_list=json.load(f)
-        with open(os.path.join(data_path,'annotations',f'{split}.json'),'r') as f:
-            data_list=json.load(f)
+    with open(os.path.join(data_path,'split',f"{split_name}.json"),'r')  as f:
+        split_loaded=json.load(f)
         
-        ridge_dict={i['image_name']:i for i in ridge_list}
+    with open(os.path.join(data_path,'annotations.json'),'r') as f:
+        data_list=json.load(f)
+    splits=['train','val']
+    for split_name in splits:
+        split_list=split_loaded[split_name]
         annotate=[]
-        print(f"paser {split} data begining, there are {len(data_list)} data")
+        print(f"paser {split_name} data begining, there are {len(data_list)} data")
         cnt=0
-        for  data_item in data_list:
+        for  image_name in split_list:
             cnt+=1
             if cnt % 100==0:
                 print(f"Finish number: {cnt}")
-            if data_item['image_name'] in ridge_dict:
-                data= ridge_dict[data_item['image_name']]
-                mask = Image.open(data['diffusion_mask_path'])
+            data=data_list[image_name]
+            if 'ridge' in data: # this image has ridge annotation
+                mask = Image.open(data['ridge_diffusion_path'])
                 mask_tensor=torch.from_numpy(np.array(mask,np.float32, copy=False))
                 mask_tensor[mask_tensor!=0]=1
 
@@ -46,8 +48,7 @@ def generate_segmentation_mask(data_path, patch_size, stride):
                 img = Image.open(data['image_path']).convert("RGB")
                 img_tensor = transforms.ToTensor()(img)
 
-                pos_path=os.path.join(data_path,'pos_embed',data['image_name'].split('.')[0]+'.pt')
-                pos_embed=torch.load(pos_path)
+                pos_embed=torch.load(data['pos_embed_path'])
                 pos_embed=F.interpolate(pos_embed[None,None,:,:], size=mask_tensor.shape, mode='nearest')
                 pos_embed=pos_embed.squeeze()
                 
@@ -101,13 +102,14 @@ def generate_segmentation_mask(data_path, patch_size, stride):
                             "class": class_annote
                         })
             else:
-                data=data_item
+                
                 img = Image.open(data['image_path']).convert("RGB")
                 img_tensor = transforms.ToTensor()(img)
-                pos_path=os.path.join(data_path,'pos_embed',data['image_name'].split('.')[0]+'.pt')
-                pos_embed=torch.load(pos_path)
+
+                pos_embed=torch.load(data['pos_embed_path'])
                 pos_embed=F.interpolate(pos_embed[None,None,:,:], size=img_tensor.shape[-2:], mode='nearest')
                 pos_embed=pos_embed.squeeze()
+                
                 patches_img = img_tensor.unfold(1, patch_size, stride).unfold(2, patch_size, stride)
                 pos_embed_patches=pos_embed.unfold(0, patch_size, stride).unfold(1, patch_size, stride) 
                 # Image size
@@ -163,7 +165,6 @@ if __name__=='__main__':
     
     # cleansing
     if args.generate_ridge:
-        from utils_ import generate_ridge
         generate_ridge(args.json_file_dict,args.path_tar)
         print(f"generate ridge_coordinate in {os.path.join(args.path_tar,'ridge')}")
     if args.generate_diffusion_mask:

@@ -64,6 +64,9 @@ def get_config():
     parser.add_argument('--generate_diffusion_mask', type=bool, default=False,
                         help='if generate the ridge cooridinate from json src.')
     
+    # split
+    parser.add_argument('--split', type=str, default='0',
+                        help='which split to use.')
     # Cleansing
     parser.add_argument('--patch_size', type=int, default=256,
                         help='patch size in cleansing .')
