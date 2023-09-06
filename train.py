@@ -27,16 +27,16 @@ if os.path.isfile(args.from_checkpoint):
 model.train()
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
-last_epoch = args.configs.TRAIN.BEGIN_EPOCH
-if isinstance(args.configs.TRAIN.LR_STEP, list):
+last_epoch = args.configs['train']['begin_epoch']
+if isinstance(args.configs['train']['lr_step'], list):
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, args.configs.TRAIN.LR_STEP,
-        args.configs.TRAIN.LR_FACTOR, last_epoch-1
+        optimizer, args['train']['lr_step'],
+        args.configs['train']['lr_factor'], last_epoch-1
     )
 else:
     lr_scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, args.configs.TRAIN.LR_STEP,
-        args.configs.TRAIN.LR_FACTOR, last_epoch-1
+        optimizer, args.configs['train']['le_step'],
+        args.configs['train']['lr_step'], last_epoch-1
     )
 
 # Load the datasets
@@ -44,12 +44,12 @@ train_dataset=CustomDatset(args.path_tar,'train')
 val_dataset=CustomDatset(args.path_tar,'val')
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
-                          batch_size=args.configs.TRAIN.BATCH_SIZE_PER_GPU,
-                          shuffle=True, num_workers=args.configs.WORKERS)
+                          batch_size=args.configs['train']['batch_size'],
+                          shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
-                        batch_size=args.configs.TRAIN.BATCH_SIZE_PER_GPU,
-                        shuffle=False, num_workers=args.configs.WORKERS)
-print(f"There is {args.configs.TRAIN.BATCH_SIZE_PER_GPU} patch size")
+                        batch_size=args.configs['train']['batch_size'],
+                        shuffle=False, num_workers=args.configs['num_works'])
+print(f"There is {args.configs['train']['batch_size']} patch size")
 print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -59,7 +59,7 @@ print(f"using {device} for training")
 
 early_stop_counter = 0
 best_val_loss = float('inf')
-total_epoches=args.configs.TRAIN.END_EPOCH
+total_epoches=args.configs['train']['end_epoch']
 # Training and validation loop
 for epoch in range(last_epoch,total_epoches):
 
@@ -78,6 +78,6 @@ for epoch in range(last_epoch,total_epoches):
         print(f"Model saved as {args.save_name}")
     else:
         early_stop_counter += 1
-        if early_stop_counter >= args.configs.TRAIN.EARLY_STOP:
+        if early_stop_counter >= args.configs['train']['early_stop']:
             print("Early stopping triggered")
             break

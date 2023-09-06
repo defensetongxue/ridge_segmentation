@@ -18,8 +18,9 @@ class UNet(nn.Module):
         self.upconv4 = nn.ConvTranspose2d(128, 64, 2, stride=2)
         self.conv9 = nn.Conv2d(128, 64, 3, padding=1)
         self.conv10 = nn.Conv2d(64, 1, 1)
-
-    def forward(self, x):
+        self.pos_embed= nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1)
+    def forward(self, x_pos):
+        x,pos=x_pos
         x1 = nn.functional.relu(self.conv1(x))
         x2 = nn.functional.max_pool2d(x1, 2)
         x2 = nn.functional.relu(self.conv2(x2))
@@ -41,5 +42,7 @@ class UNet(nn.Module):
         x9 = nn.functional.relu(self.upconv4(x8))
         x9 = torch.cat([x1, x9], dim=1)
         x9 = nn.functional.relu(self.conv9(x9))
-        x10 = self.conv10(x9)
-        return x10
+        output = self.conv10(x9)
+        pos_embed=self.pos_embed(pos.unsqueeze(1))
+        output= output.squeeze()+pos_embed.squeeze()
+        return output

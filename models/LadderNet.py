@@ -35,8 +35,9 @@ class LadderNet(nn.Module):
         self.upconv3 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
         self.upconv4 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.conv_last = nn.Conv2d(64, num_classes, kernel_size=1)
-
-    def forward(self, x):
+        self.pos_embed= nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1)
+    def forward(self, x_pops):
+        x,pos=x_pops
         out = F.relu(self.bn1(self.conv1(x)))
         out, out_down1 = self.block1(out)
         out, out_down2 = self.block2(out)
@@ -50,5 +51,7 @@ class LadderNet(nn.Module):
         out = torch.cat([out, out_down2], dim=1)
         out = F.relu(self.upconv4(out))
         out = torch.cat([out, out_down1], dim=1)
-        out = self.conv_last(out)
-        return out
+        output = self.conv_last(out)
+        pos_embed=self.pos_embed(pos.unsqueeze(1))
+        output= output.squeeze()+pos_embed.squeeze()
+        return output

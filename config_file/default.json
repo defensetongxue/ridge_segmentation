@@ -1,0 +1,24 @@
+{
+    "num_works": 15,
+    "loss": "BCELoss",
+    "model": {
+        "name": "FR_UNet",
+        "pretrained": ""
+    },
+    "train": {
+        "batch_size": 24,
+        "begin_epoch": 0,
+        "end_epoch": 500,
+        "early_stop": 30,
+        "optimizer": "adam",
+        "lr": 0.0003,
+        "wd": 0.0,
+        "lr_step": [
+            30,
+            50
+        ],
+        "lr_factor":0.25,
+        "momentum": 0.0,
+        "nesterov": false 
+    }
+}

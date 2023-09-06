@@ -54,27 +54,27 @@ def get_instance(module, class_name, *args, **kwargs):
 
 def get_optimizer(cfg, model):
     optimizer = None
-    if cfg.TRAIN.OPTIMIZER == 'sgd':
+    if cfg['train']['optimizer'] == 'sgd':
         optimizer = optim.SGD(
             filter(lambda p: p.requires_grad, model.parameters()),
-            lr=cfg.TRAIN.LR,
-            momentum=cfg.TRAIN.MOMENTUM,
-            weight_decay=cfg.TRAIN.WD,
-            nesterov=cfg.TRAIN.NESTEROV
+            lr=cfg['train']['lr'],
+            momentum=cfg['train']['momentum'],
+            weight_decay=cfg['train']['wd'],
+            nesterov=cfg['train']['nesterov']
         )
-    elif cfg.TRAIN.OPTIMIZER == 'adam':
+    elif cfg['train']['optimizer'] == 'adam':
         optimizer = optim.Adam(
             filter(lambda p: p.requires_grad, model.parameters()),
-            lr=cfg.TRAIN.LR
+            lr=cfg['train']['lr']
         )
-    elif cfg.TRAIN.OPTIMIZER == 'rmsprop':
+    elif cfg['train']['optimizer'] == 'rmsprop':
         optimizer = optim.RMSprop(
             filter(lambda p: p.requires_grad, model.parameters()),
-            lr=cfg.TRAIN.LR,
-            momentum=cfg.TRAIN.MOMENTUM,
-            weight_decay=cfg.TRAIN.WD,
-            alpha=cfg.TRAIN.RMSPROP_ALPHA,
-            centered=cfg.TRAIN.RMSPROP_CENTERED
+            lr=cfg['train']['lr'],
+            momentum=cfg['train']['momentum'],
+            weight_decay=cfg['train']['wd'],
+            alpha=cfg['train']['rmsprop_alpha'],
+            centered=cfg['train']['rmsprop_centered']
         )
     else:
         raise
