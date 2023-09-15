@@ -3,7 +3,13 @@
     "loss": "BCELoss",
     "model": {
         "name": "FR_UNet",
-        "pretrained": ""
+        "pretrained": "",
+        "num_classes":1,
+        "num_channels":3,
+        "feature_scale":2, 
+        "dropout":0.2,
+        "fuse": 1, 
+        "out_ave":1
     },
     "train": {
         "batch_size": 24,

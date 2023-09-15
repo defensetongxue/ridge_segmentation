@@ -1,8 +1,7 @@
 import torch
-import inspect
 from torch import optim
 import numpy as np
-
+from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
 def train_epoch(model, optimizer, train_loader, loss_function, device):
     model.train()
     running_loss = 0.0
@@ -43,14 +42,9 @@ def val_epoch(model, val_loader, loss_function, device):
 
 
 def get_instance(module, class_name, *args, **kwargs):
-    try:
-        cls = getattr(module, class_name)
-        instance = cls(*args, **kwargs)
-        return instance
-    except AttributeError:
-        available_classes = [name for name, obj in inspect.getmembers(module, inspect.isclass) if obj.__module__ == module.__name__]
-        raise ValueError(f"{class_name} not found in the given module. Available classes: {', '.join(available_classes)}")
-
+    cls = getattr(module, class_name)
+    instance = cls(*args, **kwargs)
+    return instance
 
 def get_optimizer(cfg, model):
     optimizer = None
@@ -79,3 +73,21 @@ def get_optimizer(cfg, model):
     else:
         raise
     return optimizer
+def get_lr_scheduler(optimizer, cfg):
+    if cfg['method'] == 'reduce_plateau':
+        lr_scheduler = ReduceLROnPlateau(
+            optimizer,
+            mode='min',
+            patience=cfg['reduce_plateau_patience'],
+            factor=cfg['reduce_plateau_factor'],
+            cooldown=cfg['cooldown'],
+            verbose=False
+        )
+    elif cfg['method'] == 'cosine_annealing':
+        lr_scheduler = CosineAnnealingLR(optimizer, T_max=cfg['cosine_annealing_T_max'])
+    elif cfg['method'] == 'constant':
+        lr_scheduler = None  # No learning rate scheduling for constant LR
+    else:
+        raise ValueError("Invalid learning rate scheduling method")
+    
+    return lr_scheduler
