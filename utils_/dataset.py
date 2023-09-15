@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from .tools import Fix_RandomRotation
 import json
-from PIL import Image
+from PIL import Image,ImageEnhance  
 import numpy as np
 
 class ridge_segmentataion_dataset(Dataset):
@@ -14,6 +14,7 @@ class ridge_segmentataion_dataset(Dataset):
         with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'r') as f:
             self.data_list=json.load(f)
         self.split_list=split_list[split]
+        self.img_enhance=ContrastEnhancement()
         self.split = split
         self.transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
@@ -32,7 +33,7 @@ class ridge_segmentataion_dataset(Dataset):
         # Read the padded image and position embedding
         img = Image.open(data['image_path']).convert('RGB')
         pos_embed = Image.open(data['pos_embed_path'])
-
+        img=self.img_enhance(img)
         # Crop the patch
         left_top_coordinate = data['coordinates']
         patch_size = data['patch_size']
@@ -65,3 +66,12 @@ class ridge_segmentataion_dataset(Dataset):
 
     def __len__(self):
         return len(self.split_list)
+    
+class ContrastEnhancement:
+    def __init__(self, factor=1.5):
+        self.factor = factor
+
+    def __call__(self, img):
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(self.factor)
+        return img
