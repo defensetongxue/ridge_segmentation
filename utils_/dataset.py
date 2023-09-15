@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 
 class ridge_segmentataion_dataset(Dataset):
-    def __init__(self, data_path, split, split_name, device='cpu'):
+    def __init__(self, data_path, split, split_name):
         with open(os.path.join(data_path, 'ridge_seg', 'split', f'{split_name}.json'), 'r') as f:
             split_list=json.load(f)
         with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'r') as f:
@@ -25,7 +25,6 @@ class ridge_segmentataion_dataset(Dataset):
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
-        self.device = device
 
     def __getitem__(self, idx):
         data_name = self.split_list[idx]
@@ -57,12 +56,12 @@ class ridge_segmentataion_dataset(Dataset):
             gt = self.transforms(gt)
 
         # Transform mask back to 0,1 tensor
-        gt = torch.from_numpy(np.array(gt, np.float32, copy=False)).to(self.device)
+        gt = torch.from_numpy(np.array(gt, np.float32, copy=False))
         gt[gt != 0] = 1.
-        pos_embed = torch.from_numpy(np.array(pos_embed, np.float32, copy=False)).to(self.device)
-        img = self.img_transforms(img).to(self.device)
+        pos_embed = torch.from_numpy(np.array(pos_embed, np.float32, copy=False))
+        img = self.img_transforms(img)
 
         return (img, pos_embed), gt.squeeze(), data
 
     def __len__(self):
-        return len(self.annote)
+        return len(self.split_list)

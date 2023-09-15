@@ -31,9 +31,10 @@ def get_config():
     
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./YAML/default.yaml", type=str)
+                        default="./config_file/default.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 
-
+    with open(args.cfg,'r') as f:
+        args.configs=json.load(f)
     return args

@@ -30,18 +30,18 @@ optimizer = get_optimizer(args.configs, model)
 last_epoch = args.configs['train']['begin_epoch']
 if isinstance(args.configs['train']['lr_step'], list):
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-        optimizer, args['train']['lr_step'],
+        optimizer, args.configs['train']['lr_step'],
         args.configs['train']['lr_factor'], last_epoch-1
     )
 else:
     lr_scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, args.configs['train']['le_step'],
+        optimizer, args.configs['train']['lr_step'],
         args.configs['train']['lr_step'], last_epoch-1
     )
 
 # Load the datasets
-train_dataset=CustomDatset(args.path_tar,'train',split_name=args.split_name)
-val_dataset=CustomDatset(args.path_tar,'val',split_name=args.split_name)
+train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
+val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
                           batch_size=args.configs['train']['batch_size'],
