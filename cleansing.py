@@ -6,13 +6,9 @@ from PIL import Image
 import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
-import sys
-sys.path.append('..')
-from ROP_diagnoise import generate_ridge_diffusion
-from ROP_diagnoise import generate_ridge
 def generate_segmentation_mask(data_path, patch_size, stride):
     # Generate path_image folder
-    os.makedirs(data_path,'ridge_seg',exist_ok=True)
+    os.makedirs(os.path.join(data_path,'ridge_seg'),exist_ok=True)
     # save the padded image here
     os.makedirs(os.path.join(data_path,'ridge_seg','images'),exist_ok=True)
     os.system(f"find {os.path.join(data_path,'ridge_seg','images')} -type f -delete")
@@ -46,7 +42,8 @@ def generate_segmentation_mask(data_path, patch_size, stride):
         if cnt % 100==0:
             print(f"Finish number: {cnt}")
         data=data_list[image_name]
-
+        if not 'ridge' in data:
+            continue
         # Load image, position_embed and mask
         img = Image.open(data['image_path']).convert("RGB")
         img_tensor = transforms.ToTensor()(img)
@@ -70,16 +67,16 @@ def generate_segmentation_mask(data_path, patch_size, stride):
         pos_embed = pad(pos_embed, (0, padding_width, 0, padding_height)).squeeze(0) # apply padding and revert back to HxW
         
         # Save the padded image
-        padded_img_path = os.path.join(data_path, 'ridge_seg', 'images', f"{data['image_name'].split('.')[0]}_padded.jpg")
+        padded_img_path = os.path.join(data_path, 'ridge_seg', 'images', f"{image_name.split('.')[0]}_padded.jpg")
         Image.fromarray((img_tensor.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(padded_img_path)
         
         # Save padded pos embed
-        padded_pos_embed_path = os.path.join(data_path, 'ridge_seg', 'position_embed', f'{data["image_name"].split(".")[0]}_padded.jpg')
+        padded_pos_embed_path = os.path.join(data_path, 'ridge_seg', 'position_embed', f'{image_name.split(".")[0]}_padded.jpg')
         Image.fromarray((pos_embed.numpy() * 255).astype(np.uint8)).save(padded_pos_embed_path)
         
         # If 'ridge' is in data, save the padded mask
         if 'ridge' in data:
-            padded_mask_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{data['image_name'].split('.')[0]}_padded.png")
+            padded_mask_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{image_name.split('.')[0]}_padded.png")
             Image.fromarray((mask_tensor.numpy() * 255).astype(np.uint8)).save(padded_mask_path)
         else:
             padded_mask_path = None
@@ -111,7 +108,7 @@ def generate_segmentation_mask(data_path, patch_size, stride):
 
 def generate_split(data_path,split_name):
     '''generate patch split from orignal split '''
-    os.makedirs(data_path,'ridge_seg','split',exist_ok=True)
+    os.makedirs(os.path.join(data_path,'ridge_seg','split'),exist_ok=True)
 
     with open(os.path.join(data_path,'split',f"{split_name}.json"),'r') as f:
         orignal_split=json.load(f)
@@ -132,20 +129,20 @@ def generate_split(data_path,split_name):
     }
     for data_name in patch_data_list:
         data_id,_,_=data_name.split('_')
-        new_split[split[data_id]].append(data_name)
-    with open(data_path,'ridge_seg','split',f"{split_name}.json",'r') as f:
+        if data_id not in split_dict: # test set
+            continue
+        new_split[split_dict[data_id]].append(data_name)
+    with open(os.path.join(data_path,'ridge_seg','split',f"{split_name}.json"),'w') as f:
         json.dump(new_split,f)     
 if __name__=='__main__':
     from config import get_config
     args=get_config()
     
-    # cleansing
-    if args.generate_ridge:
-        generate_ridge(args.json_file_dict,args.path_tar)
-        print(f"generate ridge_coordinate in {os.path.join(args.path_tar,'ridge')}")
-    if args.generate_diffusion_mask:
+    # cleansing)
+    if args.generate_ridge_diffusion:
         print("begin generate diffusion map")
-        generate_ridge_diffusion(args.path_tar)
+        from utils_ import generate_ridge_diffusion
+        generate_ridge_diffusion(args.data_path)
         print("finished")
-    generate_segmentation_mask(args.path_tar,args.patch_size,args.stride)
-    generate_split(args.path_tar,args.split_name)
+    generate_segmentation_mask(args.data_path,args.patch_size,args.stride)
+    generate_split(args.data_path,args.split_name)
