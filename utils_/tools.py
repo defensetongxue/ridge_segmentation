@@ -147,13 +147,3 @@ def visual_mask(image_path, mask,save_path='./tmp.jpg'):
     # Save the image with mask to the specified path.
     rgb_image.save(save_path)
 
-def patchtify(img_tensor,patch_size,stride):
-    h, w = img_tensor.shape[1:]
-    print(img_tensor.shape)
-    bottom_pad = (patch_size - h % patch_size) % patch_size
-    right_pad = (patch_size - w % patch_size) % patch_size
-    padding = (0,  0, right_pad,bottom_pad)  # Padding format: #(left,top,right,bottom))
-    img_padded = transforms.functional.pad(img_tensor, padding)
-    patches = img_padded.unfold(1, patch_size, stride).unfold(2, patch_size, stride)
-    patches = patches.contiguous().view(-1, 3, patch_size, patch_size)
-    return patches,img_padded.shape[-2:]
