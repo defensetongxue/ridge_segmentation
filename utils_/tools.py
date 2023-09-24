@@ -130,7 +130,6 @@ def visual_mask(image_path, mask,save_path='./tmp.jpg'):
 
     # Create a blue mask.
     mask_np = np.array(mask)
-    print(mask.shape)
     mask_blue = np.zeros((mask_np.shape[0], mask_np.shape[1], 4), dtype=np.uint8)  # 4 for RGBA
     mask_blue[..., 2] = 255  # Set blue channel to maximum
     mask_blue[..., 3] = (mask_np * 127.5).astype(np.uint8)  # Adjust alpha channel according to the mask value

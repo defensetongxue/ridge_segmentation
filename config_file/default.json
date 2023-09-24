@@ -12,7 +12,10 @@
         "out_ave":1
     },
     "lr_strategy":{
-        "method":"constant"
+        "method":"reduce_plateau",
+        "reduce_plateau_patience":15,
+        "reduce_plateau_factor":0.25,
+        "cooldown":5
     },
     "train": {
         "batch_size": 20,

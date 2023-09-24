@@ -33,7 +33,7 @@ os.makedirs(visual_dir, exist_ok=True)
 os.makedirs(os.path.join(args.result_path,'visual_points'),exist_ok=True)
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
-    split_list=json.load(f)['test']
+    split_list=json.load(f)['test'][:TEST_CNT]
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
