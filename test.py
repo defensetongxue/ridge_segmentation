@@ -33,18 +33,26 @@ os.makedirs(visual_dir, exist_ok=True)
 os.makedirs(os.path.join(args.result_path,'visual_points'),exist_ok=True)
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
-    split_list=json.load(f)['test'][:TEST_CNT]
+    split_list=json.load(f)['test']
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
+test_list=[]
+for image_name in split_list:
+    if 'ridge' in data_dict[image_name]:
+        test_list.append(
+            image_name
+        )
+test_list=test_list[:TEST_CNT]
 img_transforms=transforms.Compose([
             ContrastEnhancement(),
+            transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
 begin=time.time()
 with torch.no_grad():
-    for image_name in split_list:
+    for image_name in test_list:
         data=data_dict[image_name]
         img = Image.open(data['image_path']).convert('RGB')
         img_tensor = img_transforms(img)

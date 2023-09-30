@@ -127,7 +127,7 @@ class Fix_RandomRotation(object):
 def visual_mask(image_path, mask,save_path='./tmp.jpg'):
     # Open the image file.
     image = Image.open(image_path).convert("RGBA")  # Convert image to RGBA
-
+    image=transforms.Resize((600,800))(image)
     # Create a blue mask.
     mask_np = np.array(mask)
     mask_blue = np.zeros((mask_np.shape[0], mask_np.shape[1], 4), dtype=np.uint8)  # 4 for RGBA

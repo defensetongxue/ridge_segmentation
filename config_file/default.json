@@ -13,8 +13,8 @@
     },
     "lr_strategy":{
         "method":"reduce_plateau",
-        "reduce_plateau_patience":15,
-        "reduce_plateau_factor":0.25,
+        "reduce_plateau_patience":10,
+        "reduce_plateau_factor":0.3,
         "cooldown":5
     },
     "train": {
@@ -23,7 +23,7 @@
         "end_epoch": 500,
         "early_stop": 30,
         "optimizer": "adam",
-        "lr": 0.001,
+        "lr": 0.0003,
         "wd": 0.0,
         "momentum": 0.0,
         "nesterov": false 
