@@ -17,7 +17,7 @@ def get_config():
                         help='Name of the model architecture to be used for training.')
     parser.add_argument('--patch_size', type=int, default=256,
                         help='Name of the model architecture to be used for training.')
-    parser.add_argument('--stride', type=int, default=64,
+    parser.add_argument('--stride', type=int, default=128,
                         help='Name of the model architecture to be used for training.')
     # train and test
     parser.add_argument('--save_dir', type=str, default="./checkpoints",

@@ -4,7 +4,7 @@ from config import get_config
 from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,losses,get_lr_scheduler
 from utils_ import ridge_segmentataion_dataset as CustomDatset
 import models
-import os
+import os,time
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
 os.makedirs("experiments",exist_ok=True)
@@ -51,15 +51,22 @@ print(f"using {device} for training")
 
 early_stop_counter = 0
 best_val_loss = float('inf')
-total_epoches=args.configs['train']['end_epoch']
-# Training and validation loop
-for epoch in range(last_epoch,total_epoches):
+total_epoches = args.configs['train']['end_epoch']
 
+# Training and validation loop
+for epoch in range(last_epoch, total_epoches):
+    start_time = time.time()  # Record the start time of the epoch
+    
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device)
     val_loss = val_epoch(model, val_loader, criterion, device)
-    print(f"Epoch {epoch + 1}/{total_epoches}," 
-          f"Train Loss: {train_loss:.6f}, Val Loss: {val_loss:.6f}," 
-            f" Lr: {optimizer.state_dict()['param_groups'][0]['lr']:.6f}" )
+    
+    end_time = time.time()  # Record the end time of the epoch
+    elapsed_time = end_time - start_time  # Calculate the elapsed time
+    elapsed_hours = elapsed_time / 3600  # Convert elapsed time to hours
+    print(f"Epoch {epoch + 1}/{total_epoches}, "
+          f"Train Loss: {train_loss:.6f}, Val Loss: {val_loss:.6f}, "
+          f"Lr: {optimizer.state_dict()['param_groups'][0]['lr']:.6f}, "
+          f"Time: {elapsed_hours:.2f} hours")
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     if lr_scheduler is not None:
         if args.configs['lr_strategy']['method'] == 'reduce_plateau':
