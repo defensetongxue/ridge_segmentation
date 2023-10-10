@@ -1,48 +1,143 @@
-# implement by chatgpt
 import torch
 import torch.nn as nn
+
+def conv1x1(in_planes, out_planes, stride=1):
+    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+
+class ConvBlock(torch.nn.Module):
+    def __init__(self, in_c, out_c, k_sz=3, shortcut=False, pool=True):
+        '''
+        pool_mode can be False (no pooling) or True ('maxpool')
+        '''
+        super(ConvBlock, self).__init__()
+        if shortcut==True: self.shortcut = nn.Sequential(conv1x1(in_c, out_c), nn.BatchNorm2d(out_c))
+        else: self.shortcut=False
+        pad = (k_sz - 1) // 2
+
+        block = []
+        if pool: self.pool = nn.MaxPool2d(kernel_size=2)
+        else: self.pool = False
+
+        block.append(nn.Conv2d(in_c, out_c, kernel_size=k_sz, padding=pad))
+        block.append(nn.ReLU())
+        block.append(nn.BatchNorm2d(out_c))
+
+        block.append(nn.Conv2d(out_c, out_c, kernel_size=k_sz, padding=pad))
+        block.append(nn.ReLU())
+        block.append(nn.BatchNorm2d(out_c))
+
+        self.block = nn.Sequential(*block)
+    def forward(self, x):
+        if self.pool: x = self.pool(x)
+        out = self.block(x)
+        if self.shortcut: return out + self.shortcut(x)
+        else: return out
+
+class UpsampleBlock(torch.nn.Module):
+    def __init__(self, in_c, out_c, up_mode='transp_conv'):
+        super(UpsampleBlock, self).__init__()
+        block = []
+        if up_mode == 'transp_conv':
+            block.append(nn.ConvTranspose2d(in_c, out_c, kernel_size=2, stride=2))
+        elif up_mode == 'up_conv':
+            block.append(nn.Upsample(mode='bilinear', scale_factor=2, align_corners=False))
+            block.append(nn.Conv2d(in_c, out_c, kernel_size=1))
+        else:
+            raise Exception('Upsampling mode not supported')
+
+        self.block = nn.Sequential(*block)
+
+    def forward(self, x):
+        out = self.block(x)
+        return out
+
+class ConvBridgeBlock(torch.nn.Module):
+    def __init__(self, channels, k_sz=3):
+        super(ConvBridgeBlock, self).__init__()
+        pad = (k_sz - 1) // 2
+        block=[]
+
+        block.append(nn.Conv2d(channels, channels, kernel_size=k_sz, padding=pad))
+        block.append(nn.ReLU())
+        block.append(nn.BatchNorm2d(channels))
+
+        self.block = nn.Sequential(*block)
+
+    def forward(self, x):
+        out = self.block(x)
+        return out
+
+class UpConvBlock(torch.nn.Module):
+    def __init__(self, in_c, out_c, k_sz=3, up_mode='up_conv', conv_bridge=False, shortcut=False):
+        super(UpConvBlock, self).__init__()
+        self.conv_bridge = conv_bridge
+
+        self.up_layer = UpsampleBlock(in_c, out_c, up_mode=up_mode)
+        self.conv_layer = ConvBlock(2 * out_c, out_c, k_sz=k_sz, shortcut=shortcut, pool=False)
+        if self.conv_bridge:
+            self.conv_bridge_layer = ConvBridgeBlock(out_c, k_sz=k_sz)
+
+    def forward(self, x, skip):
+        up = self.up_layer(x)
+        if self.conv_bridge:
+            out = torch.cat([up, self.conv_bridge_layer(skip)], dim=1)
+        else:
+            out = torch.cat([up, skip], dim=1)
+        out = self.conv_layer(out)
+        return out
+
 class UNet(nn.Module):
-    def __init__(self):
+    def __init__(self, in_c, n_classes, layers, k_sz=3, up_mode='transp_conv', conv_bridge=True, shortcut=True):
         super(UNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 64, 3, padding=1)
-        self.conv2 = nn.Conv2d(64, 128, 3, padding=1)
-        self.conv3 = nn.Conv2d(128, 256, 3, padding=1)
-        self.conv4 = nn.Conv2d(256, 512, 3, padding=1)
-        self.conv5 = nn.Conv2d(512, 1024, 3, padding=1)
-        self.upconv1 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
-        self.conv6 = nn.Conv2d(1024, 512, 3, padding=1)
-        self.upconv2 = nn.ConvTranspose2d(512, 256, 2, stride=2)
-        self.conv7 = nn.Conv2d(512, 256, 3, padding=1)
-        self.upconv3 = nn.ConvTranspose2d(256, 128, 2, stride=2)
-        self.conv8 = nn.Conv2d(256, 128, 3, padding=1)
-        self.upconv4 = nn.ConvTranspose2d(128, 64, 2, stride=2)
-        self.conv9 = nn.Conv2d(128, 64, 3, padding=1)
-        self.conv10 = nn.Conv2d(64, 1, 1)
-        self.pos_embed= nn.Conv2d(in_channels=1, out_channels=1, kernel_size=1)
-    def forward(self, x_pos):
+        self.n_classes = n_classes
+        self.first = ConvBlock(in_c=in_c, out_c=layers[0], k_sz=k_sz,
+                               shortcut=shortcut, pool=False)
+
+        self.down_path = nn.ModuleList()
+        for i in range(len(layers) - 1):
+            block = ConvBlock(in_c=layers[i], out_c=layers[i + 1], k_sz=k_sz,
+                              shortcut=shortcut, pool=True)
+            self.down_path.append(block)
+
+        self.up_path = nn.ModuleList()
+        reversed_layers = list(reversed(layers))
+        for i in range(len(layers) - 1):
+            block = UpConvBlock(in_c=reversed_layers[i], out_c=reversed_layers[i + 1], k_sz=k_sz,
+                                up_mode=up_mode, conv_bridge=conv_bridge, shortcut=shortcut)
+            self.up_path.append(block)
+
+        # init, shamelessly lifted from torchvision/models/resnet.py
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+        self.final = nn.Conv2d(layers[0], n_classes, kernel_size=1)
+
+    def forward(self, x):
+        x = self.first(x)
+        down_activations = []
+        for i, down in enumerate(self.down_path):
+            down_activations.append(x)
+            x = down(x)
+        down_activations.reverse()
+        for i, up in enumerate(self.up_path):
+            x = up(x, down_activations[i])
+        return self.final(x)
+    
+class Build_UNet(nn.Module):
+    def __init__(self,configs):
+        super(Build_UNet, self).__init__()
+        self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
+        self.backbone=UNet(
+            in_c=configs["in_channels"],
+            n_classes=configs["num_classes"],
+            layers= configs['layer_number']
+        )
+    def forward(self,x_pos):
         x,pos=x_pos
-        x1 = nn.functional.relu(self.conv1(x))
-        x2 = nn.functional.max_pool2d(x1, 2)
-        x2 = nn.functional.relu(self.conv2(x2))
-        x3 = nn.functional.max_pool2d(x2, 2)
-        x3 = nn.functional.relu(self.conv3(x3))
-        x4 = nn.functional.max_pool2d(x3, 2)
-        x4 = nn.functional.relu(self.conv4(x4))
-        x5 = nn.functional.max_pool2d(x4, 2)
-        x5 = nn.functional.relu(self.conv5(x5))
-        x6 = nn.functional.relu(self.upconv1(x5))
-        x6 = torch.cat([x4, x6], dim=1)
-        x6 = nn.functional.relu(self.conv6(x6))
-        x7 = nn.functional.relu(self.upconv2(x6))
-        x7 = torch.cat([x3, x7], dim=1)
-        x7 = nn.functional.relu(self.conv7(x7))
-        x8 = nn.functional.relu(self.upconv3(x7))
-        x8 = torch.cat([x2, x8], dim=1)
-        x8 = nn.functional.relu(self.conv8(x8))
-        x9 = nn.functional.relu(self.upconv4(x8))
-        x9 = torch.cat([x1, x9], dim=1)
-        x9 = nn.functional.relu(self.conv9(x9))
-        output = self.conv10(x9)
-        pos_embed=self.pos_embed(pos.unsqueeze(1))
-        output= output.squeeze()+pos_embed.squeeze()
-        return output
+        x=x*(1-self.pos_embed)+pos.unsqueeze(1)*self.pos_embed
+        out=self.backbone(x)
+        return out
