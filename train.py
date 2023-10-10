@@ -18,7 +18,7 @@ os.makedirs(result_path,exist_ok=True)
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
-model = get_instance(models, args.model,args.configs['model'])
+model = get_instance(models, args.configs['model']['name'],args.configs['model'])
 criterion=get_instance(losses,args.configs['model']['loss_func'])
 if os.path.isfile(args.from_checkpoint):
     print(f"loadding the exit checkpoints {args.from_checkpoint}")

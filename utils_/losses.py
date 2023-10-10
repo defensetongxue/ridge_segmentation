@@ -20,7 +20,7 @@ class FocalLoss(nn.Module):
 
 
 class BCELoss(nn.Module):
-    def __init__(self, reduction="mean", pos_weight=4.0):
+    def __init__(self, reduction="mean", pos_weight=1.0):
         pos_weight = torch.tensor(pos_weight).cuda()
         super(BCELoss, self).__init__()
         self.bce_loss = nn.BCEWithLogitsLoss(
@@ -65,3 +65,16 @@ class CE_DiceLoss(nn.Module):
     def forward(self, prediction, targets):
         return self.D_weight * self.DiceLoss(prediction, targets) + (1 - self.D_weight) * self.BCELoss(prediction,
                                                                                                        targets)
+
+class WNetLoss(nn.Module):
+    def __init__(self, reduction="mean", pos_weight=1.0):
+        pos_weight = torch.tensor(pos_weight).cuda()
+        super(WNetLoss, self).__init__()
+        self.bce_loss = nn.BCEWithLogitsLoss(
+            reduction=reduction, pos_weight=pos_weight)
+
+    def forward(self, prediction, targets):
+        if isinstance(prediction,tuple):
+            return +self.bce_loss(prediction[0],targets) + \
+                self.bce_loss(prediction[1],targets)
+        return self.bce_loss(prediction, targets)

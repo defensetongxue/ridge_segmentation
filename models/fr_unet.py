@@ -206,4 +206,4 @@ class FR_UNet(nn.Module):
                       self.final3(x11)+self.final4(x12)+self.final5(x13))/5
         else:
             output = self.final5(x13)
-        return output.squeeze()
+        return output

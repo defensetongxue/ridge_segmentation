@@ -1,7 +1,7 @@
 {
     "num_works": 15,
     "model": {
-        "loss_func": "BCELoss",
+        "loss_func": "WNetLoss",
         "name": "wnet",
         "pretrained": "",
         "num_classes":1,
@@ -15,7 +15,7 @@
         "cooldown":5
     },
     "train": {
-        "batch_size": 20,
+        "batch_size": 120,
         "begin_epoch": 0,
         "end_epoch": 500,
         "early_stop": 30,

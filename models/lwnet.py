@@ -20,8 +20,9 @@ class wnet(torch.nn.Module):
 
 class Build_WNet(torch.nn.Module):
     def __init__(self,configs):
+        super(Build_WNet, self).__init__()
         self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
-        self.backnone=wnet(
+        self.backbone=wnet(
              in_c=configs["in_channels"],
             n_classes=configs["num_classes"],
             layers= configs['layer_number'],

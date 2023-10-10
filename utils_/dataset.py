@@ -61,8 +61,7 @@ class ridge_segmentataion_dataset(Dataset):
         gt[gt != 0] = 1.
         pos_embed = torch.from_numpy(np.array(pos_embed, np.float32, copy=False))
         img = self.img_transforms(img)
-
-        return (img, pos_embed), gt.squeeze(), data
+        return (img, pos_embed), gt.unsqueeze(0), data
 
     def __len__(self):
         return len(self.split_list)
