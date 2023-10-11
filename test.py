@@ -27,10 +27,11 @@ model.load_state_dict(
 print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.save_name}")))
 model.eval()
 # Create the visualizations directory if it doesn't exist
-
-visual_dir = os.path.join(args.result_path, 'visual')
+config_name=os.path.basename(args.cfg).split('.')[0]
+visual_dir = os.path.join(args.result_path,config_name, 'visual')
+os.makedirs(os.path.join(args.result_path,config_name), exist_ok=True)
 os.makedirs(visual_dir, exist_ok=True)
-os.makedirs(os.path.join(args.result_path,'visual_points'),exist_ok=True)
+os.makedirs(os.path.join(args.result_path,config_name,'visual_points'),exist_ok=True)
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
@@ -69,6 +70,6 @@ with torch.no_grad():
         visual_mask(data['image_path'],mask,os.path.join(visual_dir,image_name))
         if True:
             visual_points(data['image_path'],mask,
-                          save_path= os.path.join(args.result_path,'visual_points',image_name))
+                          save_path= os.path.join(args.result_path,config_name,'visual_points',image_name))
 end=time.time()
 print(f"Finished testing. Time cost {(end-begin)/100:.4f}")

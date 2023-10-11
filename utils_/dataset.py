@@ -26,7 +26,7 @@ class ridge_segmentataion_dataset(Dataset):
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
-
+        self.totenor=transforms.ToTensor()
     def __getitem__(self, idx):
         data_name = self.split_list[idx]
         data = self.data_list[data_name]
@@ -51,12 +51,11 @@ class ridge_segmentataion_dataset(Dataset):
             gt = self.transforms(gt)
 
         # Convert mask and pos_embed to tensor
-        gt = torch.from_numpy(np.array(gt, np.float32, copy=False))
+        gt = self.totenor(gt)
         gt[gt != 0] = 1.
-        pos_embed = torch.from_numpy(np.array(pos_embed, np.float32, copy=False))
+        pos_embed = self.totenor(pos_embed)
         img = self.img_transforms(img)
-
-        return (img, pos_embed), gt.unsqueeze(0), data
+        return (img, pos_embed), gt, data
 
     def __len__(self):
         return len(self.split_list)

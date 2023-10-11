@@ -7,6 +7,7 @@ import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
 def generate_segmentation_mask(data_path, patch_size, stride):
+    os.makedirs(os.path.join(data_path,'ridge_seg'), exist_ok=True)
     # Clean up the directories
     os.makedirs(os.path.join(data_path,'ridge_seg','images'), exist_ok=True)
     os.system(f"find {os.path.join(data_path,'ridge_seg','images')} -type f -delete")
@@ -22,7 +23,7 @@ def generate_segmentation_mask(data_path, patch_size, stride):
     cnt = 0
     for image_name in data_list:
         cnt += 1
-        if cnt % 100 and False == 0: # logger
+        if cnt % 100 and True == 0: # logger
             print(f"Finished processing: {cnt} images")
         
         data = data_list[image_name]
@@ -49,14 +50,12 @@ def generate_segmentation_mask(data_path, patch_size, stride):
         mask_tensor = pad(mask_tensor, (0, padding_width, 0, padding_height)).squeeze(0)
         pos_embed = pos_embed.unsqueeze(0)
         pos_embed = pad(pos_embed, (0, padding_width, 0, padding_height)).squeeze(0)
-    
         # Create and save cropped patches directly
-        for i in range(0, img_tensor.shape[1] - patch_size + 1, stride):
-            for j in range(0, img_tensor.shape[2] - patch_size + 1, stride):
+        for i in range(0, img_tensor.shape[2] - patch_size, stride):  # Change +1 to +patch_size
+            for j in range(0, img_tensor.shape[1] - patch_size, stride):  # Change +1 to +patch_size
                 img_patch = img_tensor[:, j:j+patch_size, i:i+patch_size]
                 mask_patch = mask_tensor[j:j+patch_size, i:i+patch_size]
-                pos_embed_patch = pos_embed[:, j:j+patch_size, i:i+patch_size]
-
+                pos_embed_patch = pos_embed[j:j+patch_size, i:i+patch_size]
                 save_name = f"{data['id']}_{str(i//stride)}_{str(j//stride)}"
 
                 img_patch_path = os.path.join(data_path, 'ridge_seg', 'images', f"{save_name}.jpg")
@@ -65,7 +64,7 @@ def generate_segmentation_mask(data_path, patch_size, stride):
 
                 Image.fromarray((img_patch.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(img_patch_path)
                 Image.fromarray((mask_patch.numpy() * 255).astype(np.uint8)).save(mask_patch_path)
-                Image.fromarray((pos_embed_patch.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(pos_embed_patch_path)
+                Image.fromarray((pos_embed_patch.numpy() * 255).astype(np.uint8)).save(pos_embed_patch_path)
 
                 annotate[save_name] = {
                     "crop_from": image_name,

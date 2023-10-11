@@ -138,6 +138,6 @@ class Build_UNet(nn.Module):
         )
     def forward(self,x_pos):
         x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos.unsqueeze(1)*self.pos_embed
+        x=x*(1-self.pos_embed)+pos*self.pos_embed
         out=self.backbone(x)
         return out

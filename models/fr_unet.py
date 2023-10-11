@@ -182,7 +182,7 @@ class FR_UNet(nn.Module):
         
     def forward(self, x_pos):
         x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos.unsqueeze(1)*self.pos_embed
+        x=x*(1-self.pos_embed)+pos*self.pos_embed
         x1_3, x_down1_3 = self.block1_3(x)
         x1_2, x_down1_2 = self.block1_2(x1_3)
         x2_2, x_up2_2, x_down2_2 = self.block2_2(x_down1_3)

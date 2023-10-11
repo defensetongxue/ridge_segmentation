@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from config import get_config
-from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,losses,get_lr_scheduler
+from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
 from utils_ import ridge_segmentataion_dataset as CustomDatset
 import models
 import os,time
@@ -19,7 +19,7 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
-criterion=get_instance(losses,args.configs['model']['loss_func'])
+criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
 if os.path.isfile(args.from_checkpoint):
     print(f"loadding the exit checkpoints {args.from_checkpoint}")
     model.load_state_dict(
@@ -27,7 +27,7 @@ if os.path.isfile(args.from_checkpoint):
 model.train()
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
-lr_scheduler=get_lr_scheduler(optimizer,args.configs['lr_strategy'])
+lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 
@@ -56,8 +56,7 @@ total_epoches = args.configs['train']['end_epoch']
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
-    
-    train_loss = train_epoch(model, optimizer, train_loader, criterion, device)
+    train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
     val_loss = val_epoch(model, val_loader, criterion, device)
     
     end_time = time.time()  # Record the end time of the epoch
@@ -68,11 +67,6 @@ for epoch in range(last_epoch, total_epoches):
           f"Lr: {optimizer.state_dict()['param_groups'][0]['lr']:.6f}, "
           f"Time: {elapsed_hours:.2f} hours")
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
-    if lr_scheduler is not None:
-        if args.configs['lr_strategy']['method'] == 'reduce_plateau':
-            lr_scheduler.step(val_loss)
-        elif args.configs['lr_strategy']['method'] == 'cosine_annealing':
-            lr_scheduler.step()
     # Early stopping
     if val_loss < best_val_loss:
         best_val_loss = val_loss
