@@ -62,7 +62,7 @@ with torch.no_grad():
         
         img=img_tensor.unsqueeze(0).to(device)
         pos_embed=pos_embed.unsqueeze(0).to(device)
-        output_img = model((img,pos_embed)).cpu()
+        output_img = model((img,pos_embed)).squeeze().cpu()
         # Resize the output to the original image size
         
         mask=torch.sigmoid(output_img).numpy()

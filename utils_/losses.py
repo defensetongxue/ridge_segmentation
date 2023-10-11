@@ -20,7 +20,7 @@ class FocalLoss(nn.Module):
 
 
 class BCELoss(nn.Module):
-    def __init__(self, reduction="mean", pos_weight=1.0):
+    def __init__(self, reduction="mean", pos_weight=10.0):
         pos_weight = torch.tensor(pos_weight).cuda()
         super(BCELoss, self).__init__()
         self.bce_loss = nn.BCEWithLogitsLoss(
@@ -67,7 +67,7 @@ class CE_DiceLoss(nn.Module):
                                                                                                        targets)
 
 class WNetLoss(nn.Module):
-    def __init__(self, reduction="mean", pos_weight=1.0):
+    def __init__(self, reduction="mean", pos_weight=10.0):
         pos_weight = torch.tensor(pos_weight).cuda()
         super(WNetLoss, self).__init__()
         self.bce_loss = nn.BCEWithLogitsLoss(
