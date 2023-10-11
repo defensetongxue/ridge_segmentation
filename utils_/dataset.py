@@ -29,22 +29,16 @@ class ridge_segmentataion_dataset(Dataset):
 
     def __getitem__(self, idx):
         data_name = self.split_list[idx]
-        data=self.data_list[data_name]
-        # Read the padded image and position embedding
+        data = self.data_list[data_name]
+        
         img = Image.open(data['image_path']).convert('RGB')
-        pos_embed = Image.open(data['pos_embed_path'])
-        img=self.img_enhance(img)
-        # Crop the patch
-        left_top_coordinate = data['coordinates']
-        patch_size = data['patch_size']
-        img = img.crop((left_top_coordinate[0], left_top_coordinate[1], left_top_coordinate[0] + patch_size, left_top_coordinate[1] + patch_size))
-        pos_embed = pos_embed.crop((left_top_coordinate[0], left_top_coordinate[1], left_top_coordinate[0] + patch_size, left_top_coordinate[1] + patch_size))
-
-        # Read and crop the mask if it exists
+        img = self.img_enhance(img)
+        pos_embed = Image.open(data['pos_embed_path']).convert('RGB')
+        
         if data['mask_path']:
             gt = Image.open(data['mask_path'])
-            gt = gt.crop((left_top_coordinate[0], left_top_coordinate[1], left_top_coordinate[0] + patch_size, left_top_coordinate[1] + patch_size))
         else:
+            patch_size = data['patch_size']
             gt = Image.new('L', (patch_size, patch_size))  # create a blank (black) image
 
         if self.split == "train":
@@ -56,11 +50,12 @@ class ridge_segmentataion_dataset(Dataset):
             torch.manual_seed(seed)
             gt = self.transforms(gt)
 
-        # Transform mask back to 0,1 tensor
+        # Convert mask and pos_embed to tensor
         gt = torch.from_numpy(np.array(gt, np.float32, copy=False))
         gt[gt != 0] = 1.
         pos_embed = torch.from_numpy(np.array(pos_embed, np.float32, copy=False))
         img = self.img_transforms(img)
+
         return (img, pos_embed), gt.unsqueeze(0), data
 
     def __len__(self):

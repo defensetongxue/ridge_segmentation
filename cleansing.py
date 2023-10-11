@@ -7,105 +7,79 @@ import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
 def generate_segmentation_mask(data_path, patch_size, stride):
-    # Generate path_image folder
-    os.makedirs(os.path.join(data_path,'ridge_seg'),exist_ok=True)
-    # save the padded image here
-    os.makedirs(os.path.join(data_path,'ridge_seg','images'),exist_ok=True)
+    # Clean up the directories
+    os.makedirs(os.path.join(data_path,'ridge_seg','images'), exist_ok=True)
     os.system(f"find {os.path.join(data_path,'ridge_seg','images')} -type f -delete")
-    # save the padded mask here
-    os.makedirs(os.path.join(data_path,'ridge_seg','masks'),exist_ok=True)
+    os.makedirs(os.path.join(data_path,'ridge_seg','masks'), exist_ok=True)
     os.system(f"find {os.path.join(data_path,'ridge_seg','masks')} -type f -delete")
-    # save the padded pos_embed here
-    os.makedirs(os.path.join(data_path,'ridge_seg','position_embed'),exist_ok=True)
+    os.makedirs(os.path.join(data_path,'ridge_seg','position_embed'), exist_ok=True)
     os.system(f"find {os.path.join(data_path,'ridge_seg','position_embed')} -type f -delete")
-    # save the annotation in such format
-    '''
-    {
-        'crop_from',
-        'image_path',
-        'pos_embed_path',
-        'mask_path:,
-        'left_top':coordinate for the patch's left_top
-        'pacth_size':
-        'stride':
-    }
-    '''
     
-        
-    with open(os.path.join(data_path,'annotations.json'),'r') as f:
-        data_list=json.load(f)
+    with open(os.path.join(data_path,'annotations.json'), 'r') as f:
+        data_list = json.load(f)
     
-    annotate={}
-    cnt=0
+    annotate = {}
+    cnt = 0
     for image_name in data_list:
-        cnt+=1
-        if cnt % 100==0:
-            print(f"Finish number: {cnt}")
-        data=data_list[image_name]
+        cnt += 1
+        if cnt % 100 and False == 0: # logger
+            print(f"Finished processing: {cnt} images")
+        
+        data = data_list[image_name]
         if not 'ridge' in data:
             continue
-        # Load image, position_embed and mask
+
         img = Image.open(data['image_path']).convert("RGB")
         img_tensor = transforms.ToTensor()(img)
         mask = Image.open(data['ridge_diffusion_path'])
-        mask_tensor=torch.from_numpy(np.array(mask,np.float32, copy=False))
-        mask_tensor[mask_tensor!=0]=1
-        pos_embed=torch.load(data['pos_embed_path'])
-        pos_embed=F.interpolate(pos_embed[None,None,:,:], size=mask_tensor.shape, mode='nearest')
-        pos_embed=pos_embed.squeeze()
-    
+        mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
+        mask_tensor[mask_tensor != 0] = 1
+        pos_embed = torch.load(data['pos_embed_path'])
+        pos_embed = F.interpolate(pos_embed[None, None, :, :], size=mask_tensor.shape, mode='nearest')
+        pos_embed = pos_embed.squeeze()
+
         # Calculate padding
         image_size = img_tensor.shape[-2:]
         padding_height = stride - (image_size[0] % stride) if image_size[0] % stride != 0 else 0
         padding_width = stride - (image_size[1] % stride) if image_size[1] % stride != 0 else 0
         
-        # Pad image, mask and pos_embed
+        # Pad image, mask, and pos_embed
         img_tensor = pad(img_tensor, (0, padding_width, 0, padding_height))
-        mask_tensor = mask_tensor.unsqueeze(0) # adjust mask tensor to CxHxW
-        mask_tensor = pad(mask_tensor, (0, padding_width, 0, padding_height)).squeeze(0) # apply padding and revert back to HxW
-        pos_embed = pos_embed.unsqueeze(0) # adjust pos_embed tensor to CxHxW
-        pos_embed = pad(pos_embed, (0, padding_width, 0, padding_height)).squeeze(0) # apply padding and revert back to HxW
-        
-        # Save the padded image
-        padded_img_path = os.path.join(data_path, 'ridge_seg', 'images', f"{image_name.split('.')[0]}_padded.jpg")
-        Image.fromarray((img_tensor.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(padded_img_path)
-        
-        # Save padded pos embed
-        padded_pos_embed_path = os.path.join(data_path, 'ridge_seg', 'position_embed', f'{image_name.split(".")[0]}_padded.jpg')
-        Image.fromarray((pos_embed.numpy() * 255).astype(np.uint8)).save(padded_pos_embed_path)
-        
-        # If 'ridge' is in data, save the padded mask
-        if 'ridge' in data:
-            padded_mask_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{image_name.split('.')[0]}_padded.png")
-            Image.fromarray((mask_tensor.numpy() * 255).astype(np.uint8)).save(padded_mask_path)
-        else:
-            padded_mask_path = None
-        
-        # Calculate the number of patches in both directions
-        num_patches_height = (img_tensor.shape[1] - patch_size) // stride + 1
-        num_patches_width = (img_tensor.shape[2] - patch_size) // stride + 1
-        
-        # Loop through all patches
-        for i in range(num_patches_height):
-            for j in range(num_patches_width):
-                # Calculate coordinates for the patch's left-top point
-                left_top_coordinate = (i * stride, j * stride)
-        
-        
-                annotate[f"{data['id']}_{str(i)}_{str(j)}"]={
-                    "crop_from":image_name,
-                    "image_path": padded_img_path,
-                    "pos_embed_path": padded_pos_embed_path,
-                    "mask_path": padded_mask_path,
-                    "coordinates": left_top_coordinate,
+        mask_tensor = mask_tensor.unsqueeze(0)
+        mask_tensor = pad(mask_tensor, (0, padding_width, 0, padding_height)).squeeze(0)
+        pos_embed = pos_embed.unsqueeze(0)
+        pos_embed = pad(pos_embed, (0, padding_width, 0, padding_height)).squeeze(0)
+    
+        # Create and save cropped patches directly
+        for i in range(0, img_tensor.shape[1] - patch_size + 1, stride):
+            for j in range(0, img_tensor.shape[2] - patch_size + 1, stride):
+                img_patch = img_tensor[:, j:j+patch_size, i:i+patch_size]
+                mask_patch = mask_tensor[j:j+patch_size, i:i+patch_size]
+                pos_embed_patch = pos_embed[:, j:j+patch_size, i:i+patch_size]
+
+                save_name = f"{data['id']}_{str(i//stride)}_{str(j//stride)}"
+
+                img_patch_path = os.path.join(data_path, 'ridge_seg', 'images', f"{save_name}.jpg")
+                mask_patch_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{save_name}.png")
+                pos_embed_patch_path = os.path.join(data_path, 'ridge_seg', 'position_embed', f"{save_name}.jpg")
+
+                Image.fromarray((img_patch.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(img_patch_path)
+                Image.fromarray((mask_patch.numpy() * 255).astype(np.uint8)).save(mask_patch_path)
+                Image.fromarray((pos_embed_patch.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(pos_embed_patch_path)
+
+                annotate[save_name] = {
+                    "crop_from": image_name,
+                    "image_path": img_patch_path,
+                    "pos_embed_path": pos_embed_patch_path,
+                    "mask_path": mask_patch_path,
+                    "coordinates": (i, j),
                     "patch_size": patch_size,
-                    "stride": stride,
+                    "stride": stride
                 }
-        
-        # Save the annotation
+
+    # Save the annotation
     with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'w') as f:
         json.dump(annotate, f)
-
 def generate_split(data_path,split_name):
     '''generate patch split from orignal split '''
     os.makedirs(os.path.join(data_path,'ridge_seg','split'),exist_ok=True)
