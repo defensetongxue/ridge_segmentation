@@ -2,7 +2,7 @@
     "num_works": 15,
     "model": {
         "loss_func": "BCELoss",
-        "loss_weight":10.0,
+        "loss_weight":1.0,
         "name": "unet",
         "pretrained": "",
         "num_classes":1,
@@ -22,7 +22,7 @@
         "early_stop": 30,
         "optimizer": "adam",
         "lr": 0.001,
-        "wd": 0.0,
+        "wd": 5e-4,
         "momentum": 0.0,
         "nesterov": false 
     }

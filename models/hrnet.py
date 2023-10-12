@@ -325,6 +325,7 @@ class HighResolutionNet(nn.Module):
                 stride=1,
                 padding=1 if extra['final_conv_kernel'] == 3 else 0)
         )
+        self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
 
     def _make_transition_layer(
             self, num_channels_pre_layer, num_channels_cur_layer):
@@ -408,7 +409,9 @@ class HighResolutionNet(nn.Module):
 
         return nn.Sequential(*modules), num_inchannels
 
-    def forward(self, x):
+    def forward(self,x_pos):
+        x,pos=x_pos
+        x=x*(1-self.pos_embed)+pos*self.pos_embed
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -463,12 +466,12 @@ class HighResolutionNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
         if os.path.isfile(pretrained):
             pretrained_dict = torch.load(pretrained)
-            logger.info('=> loading pretrained model {}'.format(pretrained))
+            print('=> loading pretrained model {}'.format(pretrained))
             model_dict = self.state_dict()
             pretrained_dict = {k: v for k, v in pretrained_dict.items()
                                if k in model_dict.keys()}
-            #for k, _ in pretrained_dict.items():
-            #    logger.info(
+            # for k, _ in pretrained_dict.items():
+            #    print(
             #        '=> loading {} pretrained model {}'.format(k, pretrained))
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
