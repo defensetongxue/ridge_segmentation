@@ -1,0 +1,89 @@
+{
+    "num_works": 15,
+    "model": {
+        "loss_func": "BCELoss",
+        "loss_weight":10.0,
+        "name": "hrnet",
+        "pretrained": "pretrained_models/hrnet_w18_small_model_v1.pth",
+        "extra": {
+            "final_conv_kernel": 1,
+            "stage1": {
+                "num_modules": 1,
+                "num_branches": 1,
+                "block": "BOTTLENECK",
+                "num_blocks": [
+                    1
+                ],
+                "num_channels": [
+                    32
+                ],
+                "fuse_method": "SUM"
+            },
+            "stage2": {
+                "num_modules": 1,
+                "num_branches": 2,
+                "block": "BASIC",
+                "num_blocks": [
+                    2,
+                    2
+                ],
+                "num_channels": [
+                    16,
+                    32
+                ],
+                "fuse_method": "SUM"
+            },
+            "stage3": {
+                "num_modules": 1,
+                "num_branches": 3,
+                "block": "BASIC",
+                "num_blocks": [
+                    2,
+                    2,
+                    2
+                ],
+                "num_channels": [
+                    16,
+                    32,
+                    64
+                ],
+                "fuse_method": "SUM"
+            },
+            "stage4": {
+                "num_modules": 1,
+                "num_branches": 4,
+                "block": "BASIC",
+                "num_blocks": [
+                    2,
+                    2,
+                    2,
+                    2
+                ],
+                "num_channels": [
+                    16,
+                    32,
+                    64,
+                    128
+                ],
+                "fuse_method": "SUM"
+            }
+        }
+    },
+    "lr_strategy":{
+        "warmup_epochs":10,
+        "lr":1e-3,
+        "min_lr":1e-6,
+        "epochs":50
+    },
+    "train": {
+        "batch_size": 120,
+        "begin_epoch": 0,
+        "end_epoch": 500,
+        "early_stop": 30,
+        "optimizer": "adam",
+        "lr": 0.001,
+        "wd": 0.0,
+        "momentum": 0.0,
+        "nesterov": false 
+    }
+}

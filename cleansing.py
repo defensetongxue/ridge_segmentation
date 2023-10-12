@@ -6,7 +6,7 @@ from PIL import Image
 import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
-def generate_segmentation_mask(data_path, patch_size, stride):
+def generate_segmentation_mask(data_path, patch_size, stride_train,train_list=None):
     os.makedirs(os.path.join(data_path,'ridge_seg'), exist_ok=True)
     # Clean up the directories
     os.makedirs(os.path.join(data_path,'ridge_seg','images'), exist_ok=True)
@@ -21,15 +21,21 @@ def generate_segmentation_mask(data_path, patch_size, stride):
     
     annotate = {}
     cnt = 0
+
     for image_name in data_list:
         cnt += 1
-        if cnt % 100 and True == 0: # logger
+        if cnt % 100 and False: # logger
             print(f"Finished processing: {cnt} images")
         
         data = data_list[image_name]
         if not 'ridge' in data:
             continue
-
+        
+        if train_list is None or \
+            image_name not in train_list:
+            stride=patch_size
+        else:
+            stride=stride_train
         img = Image.open(data['image_path']).convert("RGB")
         img_tensor = transforms.ToTensor()(img)
         mask = Image.open(data['ridge_diffusion_path'])
@@ -117,5 +123,7 @@ if __name__=='__main__':
         from utils_ import generate_ridge_diffusion
         generate_ridge_diffusion(args.data_path)
         print("finished")
-    generate_segmentation_mask(args.data_path,args.patch_size,args.stride)
+    with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
+        train_list=json.load(f)['train']
+    generate_segmentation_mask(args.data_path,args.patch_size,args.stride,train_list)
     generate_split(args.data_path,args.split_name)
