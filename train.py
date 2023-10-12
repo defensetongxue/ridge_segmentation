@@ -30,7 +30,6 @@ optimizer = get_optimizer(args.configs, model)
 lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
-
 # Load the datasets
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
 val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
