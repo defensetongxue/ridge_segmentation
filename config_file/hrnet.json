@@ -4,18 +4,18 @@
         "loss_func": "BCELoss",
         "loss_weight":10.0,
         "name": "hrnet",
-        "pretrained": "pretrained_models/hrnet_w18_small_model_v1.pth",
+        "pretrained": "./pretrained/hrnet.pth",
         "extra": {
             "final_conv_kernel": 1,
             "stage1": {
                 "num_modules": 1,
-                "num_branches": 1,
+                "num_ranches": 1,
                 "block": "BOTTLENECK",
                 "num_blocks": [
-                    1
+                    2
                 ],
                 "num_channels": [
-                    32
+                    64
                 ],
                 "fuse_method": "SUM"
             },
@@ -28,13 +28,13 @@
                     2
                 ],
                 "num_channels": [
-                    16,
-                    32
+                    18,
+                    36
                 ],
                 "fuse_method": "SUM"
             },
             "stage3": {
-                "num_modules": 1,
+                "num_modules": 3,
                 "num_branches": 3,
                 "block": "BASIC",
                 "num_blocks": [
@@ -43,14 +43,14 @@
                     2
                 ],
                 "num_channels": [
-                    16,
-                    32,
-                    64
+                    18,
+                    36,
+                    72
                 ],
                 "fuse_method": "SUM"
             },
             "stage4": {
-                "num_modules": 1,
+                "num_modules": 2,
                 "num_branches": 4,
                 "block": "BASIC",
                 "num_blocks": [
@@ -60,10 +60,10 @@
                     2
                 ],
                 "num_channels": [
-                    16,
-                    32,
-                    64,
-                    128
+                    18,
+                    36,
+                    72,
+                    144
                 ],
                 "fuse_method": "SUM"
             }

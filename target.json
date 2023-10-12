@@ -10,15 +10,15 @@
     "workers": 4,
     "print_freq": 100,
     "dataset": {
-        "dataset": "pascal_ctx",
+        "dataset": "cityscapes",
         "root": "data/",
-        "test_set": "val",
-        "train_set": "train",
-        "num_classes": 59
+        "test_set": "list/cityscapes/val.lst",
+        "train_set": "list/cityscapes/train.lst",
+        "num_classes": 19
     },
     "model": {
         "name": "seg_hrnet",
-        "pretrained": "pretrained_models/hrnetv2_w48_imagenet_pretrained.pth",
+        "pretrained": "pretrained_models/hrnet_w18_small_model_v2.pth",
         "extra": {
             "final_conv_kernel": 1,
             "stage1": {
@@ -26,7 +26,7 @@
                 "num_ranches": 1,
                 "block": "BOTTLENECK",
                 "num_blocks": [
-                    4
+                    2
                 ],
                 "num_channels": [
                     64
@@ -38,46 +38,46 @@
                 "num_branches": 2,
                 "block": "BASIC",
                 "num_blocks": [
-                    4,
-                    4
+                    2,
+                    2
                 ],
                 "num_channels": [
-                    48,
-                    96
+                    18,
+                    36
                 ],
                 "fuse_method": "SUM"
             },
             "stage3": {
-                "num_modules": 4,
+                "num_modules": 3,
                 "num_branches": 3,
                 "block": "BASIC",
                 "num_blocks": [
-                    4,
-                    4,
-                    4
+                    2,
+                    2,
+                    2
                 ],
                 "num_channels": [
-                    48,
-                    96,
-                    192
+                    18,
+                    36,
+                    72
                 ],
                 "fuse_method": "SUM"
             },
             "stage4": {
-                "num_modules": 3,
+                "num_modules": 2,
                 "num_branches": 4,
                 "block": "BASIC",
                 "num_blocks": [
-                    4,
-                    4,
-                    4,
-                    4
+                    2,
+                    2,
+                    2,
+                    2
                 ],
                 "num_channels": [
-                    48,
-                    96,
-                    192,
-                    384
+                    18,
+                    36,
+                    72,
+                    144
                 ],
                 "fuse_method": "SUM"
             }
@@ -90,33 +90,33 @@
     },
     "train": {
         "image_size": [
-            480,
-            480
+            1024,
+            512
         ],
-        "base_size": 520,
-        "batch_size_per_gpu": 4,
+        "base_size": 2048,
+        "batch_size_per_gpu": 3,
         "shuffle": true,
         "begin_epoch": 0,
-        "end_epoch": 200,
+        "end_epoch": 484,
         "resume": true,
         "optimizer": "sgd",
-        "lr": 0.004,
-        "wd": 0.0001,
+        "lr": 0.01,
+        "wd": 0.0005,
         "momentum": 0.9,
         "nesterov": false,
         "flip": true,
         "multi_scale": true,
         "downsamplerate": 1,
-        "ignore_label": -1,
+        "ignore_label": 255,
         "scale_factor": 16
     },
     "test": {
         "image_size": [
-            480,
-            480
+            2048,
+            1024
         ],
-        "base_size": 520,
-        "batch_size_per_gpu": 16,
+        "base_size": 2048,
+        "batch_size_per_gpu": 4,
         "flip_test": false,
         "multi_scale": false
     }
