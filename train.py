@@ -15,6 +15,7 @@ args = get_config()
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
 os.makedirs(result_path,exist_ok=True)
+print(f"using config file {args.cfg}")
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
