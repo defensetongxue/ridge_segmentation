@@ -1,4 +1,4 @@
-import sys
+import os
 from .Unet import UNet as unet
 from torch import nn
 import torch
@@ -17,7 +17,29 @@ class wnet(torch.nn.Module):
         if not self.training:
             return x2
         return x1,x2
+    def _init_weight(self, pretrained_path):
+        if os.path.isfile(pretrained_path):
+            # Load the pre-trained weights
+            pretrained_weights = torch.load(pretrained_path, map_location='cpu')['model_state_dict']
 
+            model_dict = self.state_dict()
+
+            # Check for size mismatch and load weights accordingly
+            load_weights = {}
+            for name, param in pretrained_weights.items():
+                if name in model_dict:
+                    if model_dict[name].size() == param.size():
+                        load_weights[name] = param
+                    else:
+                        print(f"Size mismatch, skipping: {name}")
+                else:
+                    print(f"Parameter not in model, skipping: {name}")
+
+            # Update the model's state dict
+            model_dict.update(load_weights)
+            self.load_state_dict(model_dict)
+        else:
+            print("No file found at pretrained_path")
 class Build_WNet(torch.nn.Module):
     def __init__(self,configs):
         super(Build_WNet, self).__init__()
@@ -27,6 +49,8 @@ class Build_WNet(torch.nn.Module):
             n_classes=configs["num_classes"],
             layers= configs['layer_number'],
         )
+        # self.backbone._init_weight(configs['pretrained'])
+    
     def forward(self,x_pos):
         x,pos=x_pos
         x=x*(1-self.pos_embed)+pos*self.pos_embed

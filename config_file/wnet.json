@@ -4,7 +4,7 @@
         "loss_func": "WNetLoss",
         "loss_weight":1.0,
         "name": "wnet",
-        "pretrained": "",
+        "pretrained": "./pretrained/wnet.pth",
         "num_classes":1,
         "in_channels":3,
         "layer_number":[8,16,32,64]

@@ -2,9 +2,9 @@
     "num_works": 15,
     "model": {
         "loss_func": "BCELoss",
-        "loss_weight":2.0,
+        "loss_weight":1.0,
         "name": "hrnet",
-        "pretrained": "./pretrained/hrnet.pth",
+        "pretrained": "./pretrained/hrnet_large.pth",
         "extra": {
             "final_conv_kernel": 1,
             "stage1": {
@@ -12,7 +12,7 @@
                 "num_ranches": 1,
                 "block": "BOTTLENECK",
                 "num_blocks": [
-                    2
+                    4
                 ],
                 "num_channels": [
                     64
@@ -24,46 +24,46 @@
                 "num_branches": 2,
                 "block": "BASIC",
                 "num_blocks": [
-                    2,
-                    2
+                    4,
+                    4
                 ],
                 "num_channels": [
-                    18,
-                    36
+                    48,
+                    96
                 ],
                 "fuse_method": "SUM"
             },
             "stage3": {
-                "num_modules": 3,
+                "num_modules": 4,
                 "num_branches": 3,
                 "block": "BASIC",
                 "num_blocks": [
-                    2,
-                    2,
-                    2
+                    4,
+                    4,
+                    4
                 ],
                 "num_channels": [
-                    18,
-                    36,
-                    72
+                    48,
+                    96,
+                    192
                 ],
                 "fuse_method": "SUM"
             },
             "stage4": {
-                "num_modules": 2,
+                "num_modules": 3,
                 "num_branches": 4,
                 "block": "BASIC",
                 "num_blocks": [
-                    2,
-                    2,
-                    2,
-                    2
+                    4,
+                    4,
+                    4,
+                    4
                 ],
                 "num_channels": [
-                    18,
-                    36,
-                    72,
-                    144
+                    48,
+                    96,
+                    192,
+                    384
                 ],
                 "fuse_method": "SUM"
             }
@@ -76,7 +76,7 @@
         "epochs":40
     },
     "train": {
-        "batch_size": 120,
+        "batch_size": 60,
         "begin_epoch": 0,
         "end_epoch": 40,
         "early_stop": 30,
