@@ -1,24 +1,10 @@
 {
-    "cudnn": {
-        "benchmark": true,
-        "deterministic": false,
-        "enabled": true
-    },
-    "gpus": "(0,1,2,3)",
-    "output_dir": "output",
-    "log_dir": "log",
-    "workers": 4,
-    "print_freq": 100,
-    "dataset": {
-        "dataset": "cityscapes",
-        "root": "data/",
-        "test_set": "list/cityscapes/val.lst",
-        "train_set": "list/cityscapes/train.lst",
-        "num_classes": 19
-    },
+    "num_works": 15,
     "model": {
-        "name": "seg_hrnet",
-        "pretrained": "pretrained_models/hrnet_w18_small_model_v2.pth",
+        "loss_func": "BCELoss",
+        "loss_weight":2.0,
+        "name": "hrnet",
+        "pretrained": "./pretrained/hrnet.pth",
         "extra": {
             "final_conv_kernel": 1,
             "stage1": {
@@ -83,41 +69,21 @@
             }
         }
     },
-    "loss": {
-        "use_ohem": false,
-        "ohemthres": 0.9,
-        "ohemkeep": 131072
+    "lr_strategy":{
+        "warmup_epochs":10,
+        "lr":1e-3,
+        "min_lr":1e-6,
+        "epochs":40
     },
     "train": {
-        "image_size": [
-            1024,
-            512
-        ],
-        "base_size": 2048,
-        "batch_size_per_gpu": 3,
-        "shuffle": true,
+        "batch_size": 120,
         "begin_epoch": 0,
-        "end_epoch": 484,
-        "resume": true,
-        "optimizer": "sgd",
-        "lr": 0.01,
-        "wd": 0.0005,
-        "momentum": 0.9,
-        "nesterov": false,
-        "flip": true,
-        "multi_scale": true,
-        "downsamplerate": 1,
-        "ignore_label": 255,
-        "scale_factor": 16
-    },
-    "test": {
-        "image_size": [
-            2048,
-            1024
-        ],
-        "base_size": 2048,
-        "batch_size_per_gpu": 4,
-        "flip_test": false,
-        "multi_scale": false
+        "end_epoch": 40,
+        "early_stop": 30,
+        "optimizer": "adam",
+        "lr": 0.001,
+        "wd": 5e-4,
+        "momentum": 0.0,
+        "nesterov": false 
     }
 }
