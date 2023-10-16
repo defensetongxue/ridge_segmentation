@@ -411,7 +411,8 @@ class HighResolutionNet(nn.Module):
 
     def forward(self,x_pos):
         x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos*self.pos_embed
+        # x=x*(1-self.pos_embed)+pos*self.pos_embed
+        
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
