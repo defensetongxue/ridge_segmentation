@@ -13,8 +13,6 @@ def generate_segmentation_mask(data_path, patch_size, stride_train,train_list=No
     os.system(f"find {os.path.join(data_path,'ridge_seg','images')} -type f -delete")
     os.makedirs(os.path.join(data_path,'ridge_seg','masks'), exist_ok=True)
     os.system(f"find {os.path.join(data_path,'ridge_seg','masks')} -type f -delete")
-    os.makedirs(os.path.join(data_path,'ridge_seg','position_embed'), exist_ok=True)
-    os.system(f"find {os.path.join(data_path,'ridge_seg','position_embed')} -type f -delete")
     
     with open(os.path.join(data_path,'annotations.json'), 'r') as f:
         data_list = json.load(f)
@@ -41,41 +39,32 @@ def generate_segmentation_mask(data_path, patch_size, stride_train,train_list=No
         mask = Image.open(data['ridge_diffusion_path'])
         mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
         mask_tensor[mask_tensor != 0] = 1
-        pos_embed = torch.load(data['pos_embed_path'])
-        pos_embed = F.interpolate(pos_embed[None, None, :, :], size=mask_tensor.shape, mode='nearest')
-        pos_embed = pos_embed.squeeze()
 
         # Calculate padding
         image_size = img_tensor.shape[-2:]
         padding_height = stride - (image_size[0] % stride) if image_size[0] % stride != 0 else 0
         padding_width = stride - (image_size[1] % stride) if image_size[1] % stride != 0 else 0
         
-        # Pad image, mask, and pos_embed
+        # Pad image, mask, 
         img_tensor = pad(img_tensor, (0, padding_width, 0, padding_height))
         mask_tensor = mask_tensor.unsqueeze(0)
         mask_tensor = pad(mask_tensor, (0, padding_width, 0, padding_height)).squeeze(0)
-        pos_embed = pos_embed.unsqueeze(0)
-        pos_embed = pad(pos_embed, (0, padding_width, 0, padding_height)).squeeze(0)
         # Create and save cropped patches directly
         for i in range(0, img_tensor.shape[2] - patch_size, stride):  # Change +1 to +patch_size
             for j in range(0, img_tensor.shape[1] - patch_size, stride):  # Change +1 to +patch_size
                 img_patch = img_tensor[:, j:j+patch_size, i:i+patch_size]
                 mask_patch = mask_tensor[j:j+patch_size, i:i+patch_size]
-                pos_embed_patch = pos_embed[j:j+patch_size, i:i+patch_size]
                 save_name = f"{data['id']}_{str(i//stride)}_{str(j//stride)}"
 
                 img_patch_path = os.path.join(data_path, 'ridge_seg', 'images', f"{save_name}.jpg")
                 mask_patch_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{save_name}.png")
-                pos_embed_patch_path = os.path.join(data_path, 'ridge_seg', 'position_embed', f"{save_name}.jpg")
 
                 Image.fromarray((img_patch.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(img_patch_path)
                 Image.fromarray((mask_patch.numpy() * 255).astype(np.uint8)).save(mask_patch_path)
-                Image.fromarray((pos_embed_patch.numpy() * 255).astype(np.uint8)).save(pos_embed_patch_path)
-
+                
                 annotate[save_name] = {
                     "crop_from": image_name,
                     "image_path": img_patch_path,
-                    "pos_embed_path": pos_embed_patch_path,
                     "mask_path": mask_patch_path,
                     "coordinates": (i, j),
                     "patch_size": patch_size,

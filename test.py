@@ -8,8 +8,9 @@ import models
 from PIL import Image
 import torch.nn.functional as F
 from utils_ import ContrastEnhancement
+from sklearn.metrics import accuracy_score, roc_auc_score
+import numpy as np
 # Parse arguments
-TEST_CNT=100
 import time
 args = get_config()
 
@@ -28,22 +29,14 @@ print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.spli
 model.eval()
 # Create the visualizations directory if it doesn't exist
 config_name=os.path.basename(args.cfg).split('.')[0]
-visual_dir = os.path.join(args.result_path,config_name, 'visual')
-os.makedirs(os.path.join(args.result_path,config_name), exist_ok=True)
+visual_dir=os.path.join(args.result_path,config_name)
 os.makedirs(visual_dir, exist_ok=True)
-os.makedirs(os.path.join(args.result_path,config_name,'visual_points'),exist_ok=True)
+os.system(f"rm -rf {visual_dir}/*")
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
-test_list=[]
-for image_name in split_list:
-    if 'ridge' in data_dict[image_name]:
-        test_list.append(
-            image_name
-        )
-test_list=test_list[:TEST_CNT]
 img_transforms=transforms.Compose([
             ContrastEnhancement(),
             transforms.ToTensor(),
@@ -51,25 +44,40 @@ img_transforms=transforms.Compose([
                 mean=[0.4623, 0.3856, 0.2822],
                 std=[0.2527, 0.1889, 0.1334])])
 begin=time.time()
+predict=[]
+labels=[]
+mask=Image.open('./mask.png')
+mask=np.array(mask)
+mask[mask>0]=1
 with torch.no_grad():
-    for image_name in test_list:
+    for image_name in split_list:
         data=data_dict[image_name]
         img = Image.open(data['image_path']).convert('RGB')
         img_tensor = img_transforms(img)
-        pos_path=os.path.join(args.data_path,'pos_embed',data['id']+'.pt')
-        pos_embed=torch.load(pos_path)
-        pos_embed=F.interpolate(pos_embed[None,None,:,:], size=img_tensor.shape[-2:], mode='nearest')
-        pos_embed=pos_embed.squeeze()
         
         img=img_tensor.unsqueeze(0).to(device)
-        pos_embed=pos_embed.unsqueeze(0).to(device)
-        output_img = model((img,pos_embed)).squeeze().cpu()
+        output_img = model(img).squeeze().cpu()
         # Resize the output to the original image size
         
-        mask=torch.sigmoid(output_img).numpy()
-        visual_mask(data['image_path'],mask,os.path.join(visual_dir,image_name))
-        if True:
-            visual_points(data['image_path'],mask,
-                          save_path= os.path.join(args.result_path,config_name,'visual_points',image_name))
-end=time.time()
-print(f"Finished testing. Time cost {(end-begin)/100:.4f}")
+        output_img=torch.sigmoid(output_img)
+        output_img=torch.where(output_img>=0.5,torch.ones_like(output_img),torch.zeros_like(output_img))
+        output_img=output_img*mask
+        if 'ridge' in data:
+            tar=1
+        else:
+            tar=0
+        if (torch.sum(output_img)>0):
+            pred=1
+        else:
+            pred=0
+        if pred!=tar:
+            visual_mask(data['image_path'],output_img,os.path.join(visual_dir,image_name))
+       
+            visual_points(data['image_path'],output_img,
+                          save_path= os.path.join(visual_dir,image_name[:-4]+'_point.jpg'))
+        labels.append(tar)
+        predict.append(pred)
+acc = accuracy_score(labels, predict)
+auc = roc_auc_score(labels, predict)
+print(f"Accuracy: {acc:.4f}")
+print(f"AUC: {auc:.4f}")
