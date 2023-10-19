@@ -1,5 +1,6 @@
 {
     "num_works": 15,
+    "save_name":"wnet.bth",
     "model": {
         "loss_func": "WNetLoss",
         "loss_weight":1.0,

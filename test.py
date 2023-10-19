@@ -23,8 +23,8 @@ model = get_instance(models, args.configs['model']['name'],args.configs['model']
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 model.load_state_dict(
-    torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.save_name}")))
-print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.save_name}")))
+    torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
+print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
 model.eval()
 # Create the visualizations directory if it doesn't exist
 config_name=os.path.basename(args.cfg).split('.')[0]

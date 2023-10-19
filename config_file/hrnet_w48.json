@@ -1,5 +1,6 @@
 {
     "num_works": 15,
+    "save_name":"hrnet_large.bth",
     "model": {
         "loss_func": "BCELoss",
         "loss_weight":1.0,

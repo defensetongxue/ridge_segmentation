@@ -72,8 +72,8 @@ for epoch in range(last_epoch, total_epoches):
         best_val_loss = val_loss
         early_stop_counter = 0
         torch.save(model.state_dict(),
-                   os.path.join(args.save_dir,f"{args.split_name}_{args.save_name}"))
-        print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.save_name}")))
+                   os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
+        print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
     else:
         early_stop_counter += 1
         if early_stop_counter >= args.configs['train']['early_stop']:

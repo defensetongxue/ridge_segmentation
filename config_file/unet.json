@@ -1,5 +1,6 @@
 {
     "num_works": 15,
+    "save_name":"unet.bth",
     "model": {
         "loss_func": "BCELoss",
         "loss_weight":1.0,
