@@ -136,11 +136,8 @@ class unet_torch(nn.Module):
         self.unet=UNet(n_channels=configs["in_channels"],
                        n_classes=configs["num_classes"])
         self.unet._init_weight(configs["pretrained"])
-        self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
 
-    def forward(self,x_pos):
-        x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos*self.pos_embed
+    def forward(self,x):
         out=self.unet(x)
         return out
 if __name__ =='__main__':

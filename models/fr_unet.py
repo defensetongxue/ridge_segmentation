@@ -178,11 +178,8 @@ class FR_UNet(nn.Module):
         self.fuse = nn.Conv2d(
             5, configs["num_classes"], kernel_size=1, padding=0, bias=True)
         self.apply(InitWeights_He)
-        self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
         
-    def forward(self, x_pos):
-        x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos*self.pos_embed
+    def forward(self, x):
         x1_3, x_down1_3 = self.block1_3(x)
         x1_2, x_down1_2 = self.block1_2(x1_3)
         x2_2, x_up2_2, x_down2_2 = self.block2_2(x_down1_3)

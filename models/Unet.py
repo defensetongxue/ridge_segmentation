@@ -130,14 +130,11 @@ class UNet(nn.Module):
 class Build_UNet(nn.Module):
     def __init__(self,configs):
         super(Build_UNet, self).__init__()
-        self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
         self.backbone=UNet(
             in_c=configs["in_channels"],
             n_classes=configs["num_classes"],
             layers= configs['layer_number']
         )
-    def forward(self,x_pos):
-        x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos*self.pos_embed
+    def forward(self,x):
         out=self.backbone(x)
         return out

@@ -43,7 +43,6 @@ class wnet(torch.nn.Module):
 class Build_WNet(torch.nn.Module):
     def __init__(self,configs):
         super(Build_WNet, self).__init__()
-        self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
         self.backbone=wnet(
              in_c=configs["in_channels"],
             n_classes=configs["num_classes"],
@@ -51,8 +50,6 @@ class Build_WNet(torch.nn.Module):
         )
         # self.backbone._init_weight(configs['pretrained'])
     
-    def forward(self,x_pos):
-        x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos*self.pos_embed
+    def forward(self,x):
         out=self.backbone(x)
         return out

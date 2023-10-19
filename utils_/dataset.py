@@ -33,8 +33,6 @@ class ridge_segmentataion_dataset(Dataset):
         
         img = Image.open(data['image_path']).convert('RGB')
         img = self.img_enhance(img)
-        pos_embed = Image.open(data['pos_embed_path']).convert('RGB')
-        
         if data['mask_path']:
             gt = Image.open(data['mask_path'])
         else:
@@ -46,16 +44,13 @@ class ridge_segmentataion_dataset(Dataset):
             torch.manual_seed(seed)
             img = self.transforms(img)
             torch.manual_seed(seed)
-            pos_embed = self.transforms(pos_embed)
-            torch.manual_seed(seed)
             gt = self.transforms(gt)
 
         # Convert mask and pos_embed to tensor
         gt = self.totenor(gt)
         gt[gt != 0] = 1.
-        pos_embed = self.totenor(pos_embed)
         img = self.img_transforms(img)
-        return (img, pos_embed), gt, data
+        return img, gt, data
 
     def __len__(self):
         return len(self.split_list)

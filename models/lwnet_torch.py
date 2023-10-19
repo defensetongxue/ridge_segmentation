@@ -12,9 +12,7 @@ class lwnet_torch(nn.Module):
         self.unet2._init_weight(configs["pretrained"])
         self.pos_embed= nn.Parameter(torch.tensor(0.5, requires_grad=True))
 
-    def forward(self,x_pos):
-        x,pos=x_pos
-        x=x*(1-self.pos_embed)+pos*self.pos_embed
+    def forward(self,x):
         out1=self.unet1(x)
         x=torch.cat([x,out1],dim=1)
         out2=self.unet2(x)
