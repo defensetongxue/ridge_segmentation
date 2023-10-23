@@ -193,25 +193,33 @@ class ridge_finetone_dataset(Dataset):
                     "patch_size": patch_size,
                     "stride": 64,
                 }
-    def _get_sample_points(self, mask, threshold=0.4,split='train'):
+    def _get_sample_points(self, mask, threshold=0.4, split='train'):
         mask_np = mask.cpu().numpy()
-        sample_points = []  
-        clear_width=64
-        if split=='val':
-            clear_width=128
+        sample_points = []
+        clear_width = 64
+        if split == 'val':
+            clear_width = 128
+    
         while np.max(mask_np) >= threshold:
             # Get the coordinate of the maximum value point
             y, x = np.unravel_index(np.argmax(mask_np, axis=None), mask_np.shape)
-            sample_points.append((x,y))
-
+            sample_points.append((x, y))
+    
             # Add the surrounding points
             sample_points.extend([(x+64, y), (x-64, y), (x, y+64), (x, y-64)])
-
+    
             # Set the neighborhood around this point to 0
             x_start, x_end = max(0, x-clear_width), min(mask_np.shape[1], x+clear_width)
             y_start, y_end = max(0, y-clear_width), min(mask_np.shape[0], y+clear_width)
             mask_np[y_start:y_end, x_start:x_end] = 0
-        
+    
+            # Add 5 random points for balance
+            # Make sure the random points are within the mask boundaries
+            for _ in range(5):
+                rand_x = np.random.randint(0, mask_np.shape[1])
+                rand_y = np.random.randint(0, mask_np.shape[0])
+                sample_points.append((rand_x, rand_y))
+    
         return sample_points
 class ContrastEnhancement:
     def __init__(self, factor=1.5):
