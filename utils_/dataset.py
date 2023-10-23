@@ -131,7 +131,7 @@ class ridge_finetone_dataset(Dataset):
         total_number=0
         for image_name in full_split:
             data=data_dict[image_name]
-            if 'ridge' in data:
+            if data['stage']>0:
                 continue # already in training dataset
             
             img = Image.open(data['image_path']).convert('RGB')
@@ -211,7 +211,7 @@ class ridge_finetone_dataset(Dataset):
             x_start, x_end = max(0, x-clear_width), min(mask_np.shape[1], x+clear_width)
             y_start, y_end = max(0, y-clear_width), min(mask_np.shape[0], y+clear_width)
             mask_np[y_start:y_end, x_start:x_end] = 0
-
+        
         return sample_points
 class ContrastEnhancement:
     def __init__(self, factor=1.5):
