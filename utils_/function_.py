@@ -61,7 +61,8 @@ def fineone_val_epoch(model, val_loader, loss_function, device):
         for inputs, targets,meta in val_loader:
             inputs = to_device(inputs, device)
 
-            outputs = model(inputs).cpu().numpy()
+            outputs = model(inputs).cpu()
+            outputs=torch.sigmoid(outputs).numpy()
             for ridge_mask,label in zip(outputs,targets):
                 ridge_mask=np.where(ridge_mask>=0.5,
                                     np.ones_like(ridge_mask),
@@ -70,7 +71,14 @@ def fineone_val_epoch(model, val_loader, loss_function, device):
                     predict.append(1)
                 else:
                     predict.append(0)
-                labels.append(label)
+                if label>0:
+                    labels.append(1)
+                else:
+                    labels.append(0)
+
+
+                # print(ridge_mask.shape)
+                # raise
     acc = accuracy_score(labels, predict)
     auc = roc_auc_score(labels, predict)
     return acc,auc

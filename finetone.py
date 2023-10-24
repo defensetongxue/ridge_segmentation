@@ -44,7 +44,7 @@ train_loader = DataLoader(train_dataset,
                           batch_size=args.configs['train']['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
-                        batch_size=args.configs['train']['batch_size'],
+                        batch_size=4,
                         shuffle=False, num_workers=args.configs['num_works'])
 print("There is  patch size".format(args.configs['train']['batch_size']))
 print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")
@@ -52,7 +52,8 @@ print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")
 # Set up the optimizer, loss function, and early stopping
 
 early_stop_counter = 0
-best_val_auc = 0.0
+best_val_auc = fineone_val_epoch(model,val_loader,criterion,device)
+print(best_val_auc)
 total_epoches = args.configs['train']['end_epoch']
 
 # Training and validation loop

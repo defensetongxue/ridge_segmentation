@@ -243,7 +243,7 @@ class ridege_finetone_val(Dataset):
         img = Image.open(data["image_path"]).convert('RGB')
         label=data['stage']
         img=self.img_transforms(img)
-        return img,label,data
+        return img,label,data['stage']
 class ContrastEnhancement:
     def __init__(self, factor=1.5):
         self.factor = factor
