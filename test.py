@@ -62,7 +62,7 @@ with torch.no_grad():
         output_img=torch.sigmoid(output_img)
         output_img=torch.where(output_img>=0.5,torch.ones_like(output_img),torch.zeros_like(output_img))
         output_img=output_img*mask
-        if 'ridge' in data:
+        if data['stage']>0:
             tar=1
         else:
             tar=0

@@ -1,6 +1,8 @@
 import torch,math
 from torch import optim
+import numpy as np
 from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
+from sklearn.metrics import accuracy_score, roc_auc_score
 def to_device(x, device):
     if isinstance(x, tuple):
         return tuple(to_device(xi, device) for xi in x)
@@ -50,6 +52,28 @@ def val_epoch(model, val_loader, loss_function, device):
 
     return running_loss / len(val_loader)
 
+def fineone_val_epoch(model, val_loader, loss_function, device):
+    model.eval()
+    running_loss = 0.0
+    predict=[]
+    labels=[]
+    with torch.no_grad():
+        for inputs, targets,meta in val_loader:
+            inputs = to_device(inputs, device)
+
+            outputs = model(inputs).cpu().numpy()
+            for ridge_mask,label in zip(outputs,targets):
+                ridge_mask=np.where(ridge_mask>=0.5,
+                                    np.ones_like(ridge_mask),
+                                    np.zeros_like(ridge_mask))
+                if np.sum(ridge_mask)>=5:
+                    predict.append(1)
+                else:
+                    predict.append(0)
+                labels.append(label)
+    acc = accuracy_score(labels, predict)
+    auc = roc_auc_score(labels, predict)
+    return acc,auc
 
 def get_instance(module, class_name, *args, **kwargs):
     cls = getattr(module, class_name)

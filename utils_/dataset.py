@@ -221,6 +221,29 @@ class ridge_finetone_dataset(Dataset):
                 sample_points.append((rand_x, rand_y))
     
         return sample_points
+class ridege_finetone_val(Dataset):
+    def __init__(self,data_path,split_name,split) :
+        super().__init__()
+        with open(os.path.join(data_path,'annotations.json'),'r') as f:
+            self.data_dict=json.load(f)
+        with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
+            self.split_list=json.load(f)[split]
+        assert split !='train'
+        self.img_transforms=transforms.Compose([
+            ContrastEnhancement(),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.4623, 0.3856, 0.2822],
+                std=[0.2527, 0.1889, 0.1334])])
+    def __len__(self):
+        return len(self.split_list)
+    def __getitem__(self, idx):
+        image_name=self.split_list[idx]
+        data=self.data_dict[image_name]
+        img = Image.open(data["image_path"]).convert('RGB')
+        label=data['stage']
+        img=self.img_transforms(img)
+        return img,label,data
 class ContrastEnhancement:
     def __init__(self, factor=1.5):
         self.factor = factor

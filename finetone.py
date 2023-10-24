@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from config import get_config
 from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
-from utils_ import ridge_finetone_dataset as CustomDatset
+from utils_ import ridge_finetone_dataset as CustomDatset,ridege_finetone_val,fineone_val_epoch
 import models
 import os,time
 # Initialize the folder
@@ -38,7 +38,7 @@ os.system(f"find {os.path.join(args.data_path,'ridge_seg','finetone')} -type f -
 
 # Load the datasets
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name,configs=args.configs,model=model)
-val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name,configs=args.configs,model=model)
+val_dataset=ridege_finetone_val(args.data_path,split_name=args.split_name,split='val')
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
                           batch_size=args.configs['train']['batch_size'],
@@ -52,26 +52,26 @@ print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")
 # Set up the optimizer, loss function, and early stopping
 
 early_stop_counter = 0
-best_val_loss = float('inf')
+best_val_auc = 0.0
 total_epoches = args.configs['train']['end_epoch']
 
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
-    val_loss = val_epoch(model, val_loader, criterion, device)
+    acc,auc = fineone_val_epoch(model, val_loader, criterion, device)
     
     end_time = time.time()  # Record the end time of the epoch
     elapsed_time = end_time - start_time  # Calculate the elapsed time
     elapsed_hours = elapsed_time / 3600  # Convert elapsed time to hours
     print(f"Epoch {epoch + 1}/{total_epoches}, "
-          f"Train Loss: {train_loss:.6f}, Val Loss: {val_loss:.6f}, "
+          f"Train Loss: {train_loss:.6f}, Val acc: {acc:.6f}, auc: {auc:.6f} "
           f"Lr: {optimizer.state_dict()['param_groups'][0]['lr']:.6f}, "
           f"Time: {elapsed_hours:.2f} hours")
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     # Early stopping
-    if val_loss < best_val_loss:
-        best_val_loss = val_loss
+    if auc > best_val_auc:
+        best_val_auc = auc
         early_stop_counter = 0
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
