@@ -72,15 +72,15 @@
     },
     "lr_strategy":{
         "warmup_epochs":10,
-        "lr":1e-3,
-        "min_lr":1e-6,
-        "epochs":40
+        "lr":1e-4,
+        "min_lr":1e-7,
+        "epochs":50
     },
     "train": {
         "batch_size": 120,
         "begin_epoch": 0,
-        "end_epoch": 40,
-        "early_stop": 30,
+        "end_epoch": 50,
+        "early_stop": 100,
         "optimizer": "adam",
         "lr": 0.001,
         "wd": 5e-4,
