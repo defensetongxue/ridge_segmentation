@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 from config import get_config
 from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
 from utils_ import ridge_segmentataion_dataset as CustomDatset
+from utils_ import ridege_finetone_val
 import models
 import os,time
 # Initialize the folder
@@ -33,13 +34,16 @@ last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
-val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
+# val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
+val_dataset=ridege_finetone_val(args.data_path,split_name=args.split_name,split='val')
+
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
                           batch_size=args.configs['train']['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
-                        batch_size=args.configs['train']['batch_size'],
+                        # batch_size=args.configs['train']['batch_size'],
+                        batch_size=4,
                         shuffle=False, num_workers=args.configs['num_works'])
 print("There is  patch size".format(args.configs['train']['batch_size']))
 print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")

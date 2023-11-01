@@ -1,8 +1,8 @@
 {
     "num_works": 15,
     "save_name":"hrnet_finetone.bth",
-    "finetone_threshold_low":0.4,
-    "finetone_threshold_up":0.8,
+    "finetone_threshold_low":0.5,
+    "finetone_threshold_up":0.85,
     "patch_size":256,
     "model": {
         "loss_func": "BCELoss",

@@ -7,7 +7,6 @@ from utils_ import get_instance,visual_mask,visual_points
 import models
 from PIL import Image
 import torch.nn.functional as F
-from utils_ import ContrastEnhancement
 from sklearn.metrics import accuracy_score, roc_auc_score
 import numpy as np
 # Parse arguments
@@ -38,7 +37,6 @@ with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
-            ContrastEnhancement(),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],

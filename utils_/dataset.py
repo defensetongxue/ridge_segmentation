@@ -3,11 +3,9 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 from .tools import Fix_RandomRotation
-from .function_ import get_instance
 import json
-from PIL import Image,ImageEnhance ,ImageOps
+from PIL import Image,ImageOps
 import numpy as np
-import models # this is bad style code that i ensure the exe path is /ridge_segmentation/
 class ridge_segmentataion_dataset(Dataset):
     def __init__(self, data_path, split, split_name):
         with open(os.path.join(data_path, 'ridge_seg', 'split', f'{split_name}.json'), 'r') as f:
@@ -15,7 +13,6 @@ class ridge_segmentataion_dataset(Dataset):
         with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'r') as f:
             self.data_list=json.load(f)
         self.split_list=split_list[split]
-        self.img_enhance=ContrastEnhancement()
         self.split = split
         self.transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
@@ -33,7 +30,6 @@ class ridge_segmentataion_dataset(Dataset):
         data = self.data_list[data_name]
         
         img = Image.open(data['image_path']).convert('RGB')
-        img = self.img_enhance(img)
         if data['mask_path']:
             gt = Image.open(data['mask_path'])
         else:
@@ -63,7 +59,6 @@ class ridge_finetone_dataset(Dataset):
         with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'r') as f:
             self.data_list=json.load(f)
         self.split_list=split_list[split]
-        self.img_enhance=ContrastEnhancement()
         self.split = split
         self.transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
@@ -90,7 +85,6 @@ class ridge_finetone_dataset(Dataset):
         data = self.data_list[data_name]
         
         img = Image.open(data['image_path']).convert('RGB')
-        img = self.img_enhance(img)
         if data['mask_path']:
             gt = Image.open(data['mask_path'])
         else:
@@ -123,7 +117,6 @@ class ridge_finetone_dataset(Dataset):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         img_transforms=transforms.Compose([
-            ContrastEnhancement(),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
@@ -135,17 +128,18 @@ class ridge_finetone_dataset(Dataset):
                 continue # already in training dataset
             
             img = Image.open(data['image_path']).convert('RGB')
-            img_tensor = img_transforms(img)
+            with torch.no_grad():
+                img_tensor = img_transforms(img)
 
             img=img_tensor.unsqueeze(0).to(device)
             output_img = model(img).squeeze().cpu()
             # Resize the output to the original image size
         
-            mask=torch.sigmoid(output_img)
-            if torch.max(mask)>=configs['finetone_threshold_up'] and \
-            torch.max(mask)<=configs['finetone_threshold_low']:
-                samples_points=self._get_sample_points(mask,
-                                        threshold_low=['finetone_threshold_low'],
+            mask=torch.sigmoid(output_img).cpu()
+            if torch.max(mask)>=configs['finetone_threshold_low'] and \
+            torch.max(mask)<=configs['finetone_threshold_up']:
+                samples_points=self._get_sample_points(mask.detach(),
+                                        threshold_low=configs['finetone_threshold_low'],
                                         threshold_up=configs['finetone_threshold_up'],
                                         split=split)
                 self._get_extra_sample(
@@ -195,7 +189,7 @@ class ridge_finetone_dataset(Dataset):
                     "stride": 64,
                 }
     def _get_sample_points(self, mask, threshold_low=0.4, threshold_up=0.4, split='train'):
-        mask_np = mask.cpu().numpy()
+        mask_np = mask.numpy()
         sample_points = []
         clear_width = 64
         if split == 'val':
@@ -232,7 +226,6 @@ class ridege_finetone_val(Dataset):
             self.split_list=json.load(f)[split]
         assert split !='train'
         self.img_transforms=transforms.Compose([
-            ContrastEnhancement(),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
@@ -242,16 +235,7 @@ class ridege_finetone_val(Dataset):
     def __getitem__(self, idx):
         image_name=self.split_list[idx]
         data=self.data_dict[image_name]
-        img = Image.open(data["image_path"]).convert('RGB')
+        img = Image.open(data['enhanced_path']).convert('RGB')
         label=data['stage']
         img=self.img_transforms(img)
         return img,label,data['stage']
-class ContrastEnhancement:
-    def __init__(self, factor=1.5):
-        self.factor = factor
-
-    def __call__(self, img):
-        enhancer = ImageEnhance.Contrast(img)
-        img = enhancer.enhance(self.factor)
-        return img
-    
