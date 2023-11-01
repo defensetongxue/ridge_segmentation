@@ -142,11 +142,12 @@ class ridge_finetone_dataset(Dataset):
             # Resize the output to the original image size
         
             mask=torch.sigmoid(output_img)
-            mask=torch.where(mask>=configs['finetone_threshold'],
-                             torch.ones_like(mask),
-                             torch.zeros_like(mask))
-            if torch.max(mask)>=configs['finetone_threshold']:
-                samples_points=self._get_sample_points(mask,configs['finetone_threshold'])
+            if torch.max(mask)>=configs['finetone_threshold_up'] and \
+            torch.max(mask)<=configs['finetone_threshold_low']:
+                samples_points=self._get_sample_points(mask,
+                                        threshold_low=['finetone_threshold_low'],
+                                        threshold_up=configs['finetone_threshold_up'],
+                                        split=split)
                 self._get_extra_sample(
                     data_path=data_path,
                     points=samples_points,
@@ -193,14 +194,15 @@ class ridge_finetone_dataset(Dataset):
                     "patch_size": patch_size,
                     "stride": 64,
                 }
-    def _get_sample_points(self, mask, threshold=0.4, split='train'):
+    def _get_sample_points(self, mask, threshold_low=0.4, threshold_up=0.4, split='train'):
         mask_np = mask.cpu().numpy()
         sample_points = []
         clear_width = 64
         if split == 'val':
             clear_width = 128
     
-        while np.max(mask_np) >= threshold:
+        while np.max(mask_np) >= threshold_low and \
+            np.max(mask_np)<=threshold_up:
             # Get the coordinate of the maximum value point
             y, x = np.unravel_index(np.argmax(mask_np, axis=None), mask_np.shape)
             sample_points.append((x, y))
