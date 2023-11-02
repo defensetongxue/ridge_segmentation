@@ -39,6 +39,7 @@ with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
+    transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
@@ -46,13 +47,13 @@ img_transforms=transforms.Compose([
 begin=time.time()
 predict=[]
 labels=[]
-mask=Image.open('./mask.png')
+mask=Image.open('./mask.png').resize((800,600),resample=Image.Resampling.BILINEAR)
 mask=np.array(mask)
 mask[mask>0]=1
 with torch.no_grad():
     for image_name in split_list:
         data=data_dict[image_name]
-        img = Image.open(data['enhanced_path']).convert('RGB')
+        img = Image.open(data['enhanced_path'])
         img_tensor = img_transforms(img)
         
         img=img_tensor.unsqueeze(0).to(device)

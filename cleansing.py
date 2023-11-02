@@ -31,8 +31,10 @@ def generate_segmentation_mask(data_path, patch_size, stride):
         
         
         img = Image.open(data['enhanced_path']).convert("RGB")
+        img=img.resize((800,600),resample=Image.Resampling.BILINEAR)
         img_tensor = transforms.ToTensor()(img)
         mask = Image.open(data['ridge_diffusion_path'])
+        mask=mask.resize((800,600),resample=Image.Resampling.BILINEAR)
         mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
         mask_tensor[mask_tensor != 0] = 1
 

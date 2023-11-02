@@ -226,6 +226,7 @@ class ridege_finetone_val(Dataset):
             self.split_list=json.load(f)[split]
         assert split !='train'
         self.img_transforms=transforms.Compose([
+            transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
