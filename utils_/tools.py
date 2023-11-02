@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torchvision.transforms import functional as F
 from sklearn.metrics import roc_auc_score
-from PIL import Image
+from PIL import Image,ImageFont,ImageDraw
 
 
 def seed_torch(seed=42):
@@ -124,7 +124,7 @@ class Fix_RandomRotation(object):
 
 
 
-def visual_mask(image_path, mask,save_path='./tmp.jpg'):
+def visual_mask(image_path, mask,text=None,save_path='./tmp.jpg'):
     # Open the image file.
     image = Image.open(image_path).convert("RGBA")  # Convert image to RGBA
     # Create a blue mask.
@@ -138,10 +138,14 @@ def visual_mask(image_path, mask,save_path='./tmp.jpg'):
 
     # Overlay the mask onto the original image.
     composite = Image.alpha_composite(image, mask_image)
+    # Define font and size.
+    if text is not None:
+        draw = ImageDraw.Draw(composite)
+        font = ImageFont.truetype( 'arial.ttf',size=30)  # 20 is the font size. Adjust as needed.
 
-    # Convert back to RGB mode (no transparency).
+        draw.text((10, 10), text, fill="white", font=font)  # Prints the text in the top-left corner with a 
+        # Convert back to RGB mode (no transparency).
     rgb_image = composite.convert("RGB")
-
     # Save the image with mask to the specified path.
     rgb_image.save(save_path)
 

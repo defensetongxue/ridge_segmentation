@@ -31,6 +31,8 @@ config_name=os.path.basename(args.cfg).split('.')[0]
 visual_dir=os.path.join(args.result_path,config_name)
 os.makedirs(visual_dir, exist_ok=True)
 os.system(f"rm -rf {visual_dir}/*")
+os.makedirs(visual_dir+'/0/', exist_ok=True)
+os.makedirs(visual_dir+'/1/', exist_ok=True)
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
@@ -50,7 +52,7 @@ mask[mask>0]=1
 with torch.no_grad():
     for image_name in split_list:
         data=data_dict[image_name]
-        img = Image.open(data['image_path']).convert('RGB')
+        img = Image.open(data['enhanced_path']).convert('RGB')
         img_tensor = img_transforms(img)
         
         img=img_tensor.unsqueeze(0).to(device)
@@ -69,10 +71,19 @@ with torch.no_grad():
         else:
             pred=0
         if pred!=tar:
-            visual_mask(data['image_path'],output_img,os.path.join(visual_dir,image_name))
-       
-            visual_points(data['image_path'],output_img,
-                          save_path= os.path.join(visual_dir,image_name[:-4]+'_point.jpg'))
+            if tar==0:
+
+                visual_mask(data['enhanced_path'],output_img,str(int(torch.sum(output_img))),save_path=os.path.join(visual_dir,'0',image_name))
+
+                visual_points(data['enhanced_path'],output_img,
+                              save_path= os.path.join(visual_dir,'0',image_name[:-4]+'_point.jpg'))
+            else:
+
+                visual_mask(data['enhanced_path'],output_img,str(int(torch.sum(output_img))),
+                            save_path=os.path.join(visual_dir,'1',image_name))
+
+                visual_points(data['enhanced_path'],output_img,
+                              save_path= os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
         labels.append(tar)
         predict.append(pred)
 acc = accuracy_score(labels, predict)
