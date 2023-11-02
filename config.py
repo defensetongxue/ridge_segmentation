@@ -9,7 +9,7 @@ def get_config():
                         help='if generate the ridge cooridinate from json src.')
     
     # split
-    parser.add_argument('--split_name', type=str, default='2',
+    parser.add_argument('--split_name', type=str, default='1',
                         help='which split to use.')
     
     # Model
