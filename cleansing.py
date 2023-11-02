@@ -107,12 +107,12 @@ if __name__=='__main__':
     args=get_config()
     
     # cleansing)
-    if args.generate_ridge_diffusion:
-        print("begin generate diffusion map")
-        from utils_ import generate_ridge_diffusion
-        generate_ridge_diffusion(args.data_path)
-        print("finished")
-    with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
-        train_list=json.load(f)['train']
-    generate_segmentation_mask(args.data_path,args.patch_size,args.stride,train_list)
+    # if args.generate_ridge_diffusion:
+    #     print("begin generate diffusion map")
+    #     from utils_ import generate_ridge_diffusion
+    #     generate_ridge_diffusion(args.data_path)
+    #     print("finished")
+    # with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
+    #     train_list=json.load(f)['train']
+    # generate_segmentation_mask(args.data_path,args.patch_size,args.stride,train_list)
     generate_split(args.data_path,args.split_name)
