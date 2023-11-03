@@ -28,6 +28,8 @@ print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.spli
 model.eval()
 # Create the visualizations directory if it doesn't exist
 config_name=os.path.basename(args.cfg).split('.')[0]
+
+config_name='ridge_'+args.split_name
 visual_dir=os.path.join(args.result_path,config_name)
 os.makedirs(visual_dir, exist_ok=True)
 os.system(f"rm -rf {visual_dir}/*")

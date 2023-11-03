@@ -110,5 +110,5 @@ if __name__=='__main__':
     #     from utils_ import generate_ridge_diffusion
     #     generate_ridge_diffusion(args.data_path)
     #     print("finished")
-    generate_segmentation_mask(args.data_path,args.patch_size,args.stride)
+    # generate_segmentation_mask(args.data_path,args.patch_size,args.stride)
     generate_split(args.data_path,args.split_name)

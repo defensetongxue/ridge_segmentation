@@ -33,6 +33,7 @@ class ridge_segmentataion_dataset(Dataset):
         if data['mask_path']:
             gt = Image.open(data['mask_path'])
         else:
+            raise
             patch_size = data['patch_size']
             gt = Image.new('L', (patch_size, patch_size))  # create a blank (black) image
 
