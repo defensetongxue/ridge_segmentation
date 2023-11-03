@@ -1,4 +1,5 @@
-20230628
+# annotation
+    1. ready and correction
+# Segmentation
 
-model: default param dr unet
-augument: patch 256 stride 64 
+# PCL MONEY

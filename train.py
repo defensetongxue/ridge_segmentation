@@ -60,8 +60,6 @@ total_epoches = args.configs['train']['end_epoch']
 max_auc=0
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):
-    if epoch==3:
-        criterion=BCELoss()
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
     acc,auc  = fineone_val_epoch(model, val_loader, criterion, device)

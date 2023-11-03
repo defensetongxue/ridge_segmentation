@@ -37,7 +37,7 @@ def generate_segmentation_mask(data_path, patch_size, stride):
         mask=mask.resize((800,600),resample=Image.Resampling.BILINEAR)
         mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
         mask_tensor[mask_tensor != 0] = 1
-
+        assert torch.sum(mask_tensor)>100, data['image_path']
         # Calculate padding
         image_size = img_tensor.shape[-2:]
         padding_height = stride - (image_size[0] % stride) if image_size[0] % stride != 0 else 0
