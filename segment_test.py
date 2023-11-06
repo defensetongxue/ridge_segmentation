@@ -30,6 +30,7 @@ model.eval()
 config_name=os.path.basename(args.cfg).split('.')[0]
 save_dir=os.path.join(args.data_path,'ridge_seg_mask')
 os.makedirs(save_dir, exist_ok=True)
+os.system(f"rm -rf {save_dir}/*")
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
@@ -67,14 +68,14 @@ with torch.no_grad():
             pred=1
         else:
             pred=0
-        output_img=np.array(output_img*255,dtype=np.unint8)
+        output_img=np.array(output_img*255,dtype=np.uint8)
         seg_img=Image.fromarray(output_img)
         seg_img.save(os.path.join(save_dir,image_name))
         maxval,pred_point=k_max_values_and_indices(output_img,args.ridge_seg_number)
         value_list=[]
         point_list=[]
         for value in maxval:
-            value=round(value,2)
+            value=round(float(value),2)
             value_list.append(value)
         for x,y in pred_point:
             point_list.append([int(x),int(y)])

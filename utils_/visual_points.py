@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-def k_max_values_and_indices(scores, k,r=50):
+def k_max_values_and_indices(scores, k,r=50,threshold=0.5):
     # Flatten the array and get the indices of the top-k values
 
     preds_list = []
@@ -10,7 +10,8 @@ def k_max_values_and_indices(scores, k,r=50):
         idx = np.unravel_index(np.argmax(scores, axis=None), scores.shape)
 
         maxval = scores[idx]
-
+        if maxval<threshold:
+            break
         maxvals_list.append(maxval)
         preds_list.append(idx)
 
@@ -18,12 +19,9 @@ def k_max_values_and_indices(scores, k,r=50):
         x, y = idx[0], idx[1]
         xmin, ymin = max(0, x - r // 2), max(0, y - r // 2)
         xmax, ymax = min(scores.shape[0], x + r // 2), min(scores.shape[1], y + r // 2)
-        # print(scores.shape,xmin,xmax,ymin,ymax)
         scores[ xmin:xmax,ymin:ymax] = -9
-        # print(scores[ xmin:xmax,ymin:ymax])
-        # raise
-    maxvals_list=np.array(maxvals_list,dtype=np.float32)
-    preds_list=np.array(preds_list,dtype=np.float32)
+    maxvals_list=np.array(maxvals_list,dtype=np.float16)
+    preds_list=np.array(preds_list,dtype=np.float16)
     return maxvals_list, preds_list
 
 def visual_points(image_path,pred_mask, save_path,points_number=6):
