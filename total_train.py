@@ -33,7 +33,7 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
+train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name,zero_sample_rate=args.configs['zero_r'])
 # val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
 val_dataset=ridege_finetone_val(args.data_path,split_name=args.split_name,split='val')
 

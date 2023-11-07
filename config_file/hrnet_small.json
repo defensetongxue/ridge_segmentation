@@ -74,12 +74,12 @@
         "warmup_epochs":10,
         "lr":1e-3,
         "min_lr":1e-6,
-        "epochs":60
+        "epochs":100
     },
     "train": {
         "batch_size": 120,
         "begin_epoch": 0,
-        "end_epoch": 50,
+        "end_epoch": 100,
         "early_stop": 100,
         "optimizer": "adam",
         "lr": 0.001,
