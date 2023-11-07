@@ -25,10 +25,10 @@ criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 print(f"using {device} for training")
-if os.path.isfile(args.from_checkpoint):
-    print(f"loadding the exit checkpoints {args.from_checkpoint}")
+if os.path.isfile("./checkpoints/1_hrnet.bth"):
+    print(f"loadding the exit checkpoints ./checkpoints/1_hrnet.bth")
     model.load_state_dict(
-    torch.load(args.from_checkpoint))
+    torch.load("./checkpoints/1_hrnet.bth"))
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
 lr_scheduler=lr_sche(config=args.configs["lr_strategy"])

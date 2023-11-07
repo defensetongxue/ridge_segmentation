@@ -1,4 +1,4 @@
-import os
+import os,random
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -246,17 +246,19 @@ class ridege_finetone_val(Dataset):
         return img,label,data['stage']
     
 class ridge_all_dataset(Dataset):
-    def __init__(self, data_path, split, split_name):
+    def __init__(self, data_path, split, split_name,zero_sample_rate):
         with open(os.path.join(data_path,'annotations.json'),'r') as f:
             self.data_dict=json.load(f)
         with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
             split_list=json.load(f)[split]
-            
+            # self.split_list=json.load(f)[split]
         self.split_list=[]
         for image_name in split_list:
             if 'ridge' in self.data_dict[image_name]:
                 self.split_list.append(image_name)
-        
+            else:
+                if random.random()>0.5:
+                    self.split_list.append(image_name)
         self.split = split
         self.resize=transforms.Resize((600,800))
         self.transforms = transforms.Compose([
@@ -275,10 +277,10 @@ class ridge_all_dataset(Dataset):
         data = self.data_dict[data_name]
         
         img = Image.open(data['enhanced_path']).convert('RGB')
-        if data['ridge_diffusion_path']:
+        if 'ridge_diffusion_path' in data:
             gt = Image.open(data['ridge_diffusion_path'])
         else:
-            raise # create a blank (black) image
+            gt = Image.new('L', img.size)
         img=self.resize(img)
         gt=self.resize(gt)
         if self.split == "train":

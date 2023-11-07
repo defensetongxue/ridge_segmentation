@@ -22,11 +22,10 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
 criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
-if os.path.isfile(args.from_checkpoint):
-    print(f"loadding the exit checkpoints {args.from_checkpoint}")
+if os.path.isfile("./checkpoints/1_hrnet.bth"):
+    print(f"loadding the exit checkpoints ./checkpoints/1_hrnet.bth")
     model.load_state_dict(
-    torch.load(args.from_checkpoint))
-    raise
+    torch.load("./checkpoints/1_hrnet.bth"))
 model.train()
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
@@ -40,11 +39,11 @@ val_dataset=ridege_finetone_val(args.data_path,split_name=args.split_name,split=
 
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
-                          batch_size=8,
+                          batch_size=24,
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
                         # batch_size=args.configs['train']['batch_size'],
-                        batch_size=8,
+                        batch_size=24,
                         shuffle=False, num_workers=args.configs['num_works'])
 print("There is {} patch size".format(args.configs['train']['batch_size']))
 print(f"Train: {len(train_loader)} {len(train_dataset)}, Val: {len(val_loader)} {len(val_dataset)}")

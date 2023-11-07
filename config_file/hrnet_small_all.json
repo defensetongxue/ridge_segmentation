@@ -5,7 +5,7 @@
         "loss_func": "BCELoss",
         "loss_weight":1,
         "name": "hrnet",
-        "pretrained": "./checkpoints/1_last_hrnet.bth",
+        "pretrained": "./checkpoints/1_hrnet.bth",
         "extra": {
             "final_conv_kernel": 1,
             "stage1": {
