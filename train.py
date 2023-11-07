@@ -6,6 +6,7 @@ from utils_ import ridge_segmentataion_dataset as CustomDatset
 from utils_ import ridege_finetone_val
 import models
 import os,time
+from utils_.losses import BCELoss
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
 os.makedirs("experiments",exist_ok=True)
@@ -43,7 +44,7 @@ train_loader = DataLoader(train_dataset,
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
                         # batch_size=args.configs['train']['batch_size'],
-                        batch_size=4,
+                        batch_size=8,
                         shuffle=False, num_workers=args.configs['num_works'])
 print("There is  patch size".format(args.configs['train']['batch_size']))
 print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")
@@ -78,11 +79,7 @@ for epoch in range(last_epoch, total_epoches):
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
-    # else:
-    #     early_stop_counter += 1
-    #     if early_stop_counter >= args.configs['train']['early_stop']:
-    #         print("Early stopping triggered")
-    #         break
     if epoch==total_epoches-1:
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_last_{args.configs['save_name']}"))
+        print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))

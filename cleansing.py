@@ -31,11 +31,13 @@ def generate_segmentation_mask(data_path, patch_size, stride):
         
         
         img = Image.open(data['enhanced_path']).convert("RGB")
+        img=img.resize((800,600),resample=Image.Resampling.BILINEAR)
         img_tensor = transforms.ToTensor()(img)
         mask = Image.open(data['ridge_diffusion_path'])
+        mask=mask.resize((800,600),resample=Image.Resampling.BILINEAR)
         mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
         mask_tensor[mask_tensor != 0] = 1
-
+        assert torch.sum(mask_tensor)>100, data['image_path']
         # Calculate padding
         image_size = img_tensor.shape[-2:]
         padding_height = stride - (image_size[0] % stride) if image_size[0] % stride != 0 else 0
@@ -108,5 +110,5 @@ if __name__=='__main__':
     #     from utils_ import generate_ridge_diffusion
     #     generate_ridge_diffusion(args.data_path)
     #     print("finished")
-    generate_segmentation_mask(args.data_path,args.patch_size,args.stride)
+    # generate_segmentation_mask(args.data_path,args.patch_size,args.stride)
     generate_split(args.data_path,args.split_name)
