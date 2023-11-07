@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-def k_max_values_and_indices(scores, k,r=50,threshold=0.5):
+def k_max_values_and_indices(scores, k,r=50,threshold=0.0):
     # Flatten the array and get the indices of the top-k values
 
     preds_list = []
@@ -30,6 +30,7 @@ def visual_points(image_path,pred_mask, save_path,points_number=6):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     maxval,pred_point=k_max_values_and_indices(pred_mask,points_number)
     # Draw landmarks on the image
+    # print(pred_point)
     pred_point[:,0]*=w_r
     pred_point[:,1]*=h_r
     cnt=1

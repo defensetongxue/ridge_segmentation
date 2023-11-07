@@ -103,7 +103,7 @@ class ridge_finetone_dataset(Dataset):
         gt = self.totenor(gt)
         gt[gt != 0] = 1.
         img = self.img_transforms(img)
-        return img, gt, data
+        return img, gt, data_name
 
     def __len__(self):
         return len(self.split_list)
@@ -238,6 +238,62 @@ class ridege_finetone_val(Dataset):
         image_name=self.split_list[idx]
         data=self.data_dict[image_name]
         img = Image.open(data['enhanced_path']).convert('RGB')
-        label=data['stage']
+        if 'ridge' not in data:
+            label=0
+        else:
+            label=1
         img=self.img_transforms(img)
         return img,label,data['stage']
+    
+class ridge_all_dataset(Dataset):
+    def __init__(self, data_path, split, split_name):
+        with open(os.path.join(data_path,'annotations.json'),'r') as f:
+            self.data_dict=json.load(f)
+        with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
+            split_list=json.load(f)[split]
+            
+        self.split_list=[]
+        for image_name in split_list:
+            if 'ridge' in self.data_dict[image_name]:
+                self.split_list.append(image_name)
+        
+        self.split = split
+        self.resize=transforms.Resize((600,800))
+        self.transforms = transforms.Compose([
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
+            # Fix_RandomRotation(),
+        ])
+        self.img_transforms=transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.4623, 0.3856, 0.2822],
+                std=[0.2527, 0.1889, 0.1334])])
+        self.totenor=transforms.ToTensor()
+    def __getitem__(self, idx):
+        data_name = self.split_list[idx]
+        data = self.data_dict[data_name]
+        
+        img = Image.open(data['enhanced_path']).convert('RGB')
+        if data['ridge_diffusion_path']:
+            gt = Image.open(data['ridge_diffusion_path'])
+        else:
+            raise # create a blank (black) image
+        img=self.resize(img)
+        gt=self.resize(gt)
+        if self.split == "train":
+            seed = torch.seed()
+            torch.manual_seed(seed)
+            img = self.transforms(img)
+            torch.manual_seed(seed)
+            gt = self.transforms(gt)
+
+        # Convert mask and pos_embed to tensor
+        gt = self.totenor(gt)
+        gt[gt != 0] = 1.
+        img = self.img_transforms(img)
+        assert img.shape[1]==600,img.shape
+        return img, gt, data_name
+
+    def __len__(self):
+        return len(self.split_list)
