@@ -237,7 +237,7 @@ class ridege_finetone_val(Dataset):
     def __getitem__(self, idx):
         image_name=self.split_list[idx]
         data=self.data_dict[image_name]
-        img = Image.open(data['enhanced_path']).convert('RGB')
+        img = Image.open(data['image_path']).convert('RGB')
         if 'ridge' not in data:
             label=0
         else:
@@ -246,19 +246,19 @@ class ridege_finetone_val(Dataset):
         return img,label,data['stage']
     
 class ridge_all_dataset(Dataset):
-    def __init__(self, data_path, split, split_name,zero_sample_rate):
+    def __init__(self, data_path, split, split_name):
         with open(os.path.join(data_path,'annotations.json'),'r') as f:
             self.data_dict=json.load(f)
         with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
-            split_list=json.load(f)[split]
-            # self.split_list=json.load(f)[split]
-        self.split_list=[]
-        for image_name in split_list:
-            if 'ridge' in self.data_dict[image_name]:
-                self.split_list.append(image_name)
-            else:
-                if random.random()>0.5:
-                    self.split_list.append(image_name)
+            # split_list=json.load(f)[split]
+            self.split_list=json.load(f)[split]
+        # self.split_list=[]
+        # for image_name in split_list:
+        #     if 'ridge' in self.data_dict[image_name]:
+        #         self.split_list.append(image_name)
+        #     else:
+        #         if random.random()>zero_sample_rate:
+        #             self.split_list.append(image_name)
         self.split = split
         self.resize=transforms.Resize((600,800))
         self.transforms = transforms.Compose([
@@ -276,25 +276,29 @@ class ridge_all_dataset(Dataset):
         data_name = self.split_list[idx]
         data = self.data_dict[data_name]
         
-        img = Image.open(data['enhanced_path']).convert('RGB')
-        if 'ridge_diffusion_path' in data:
-            gt = Image.open(data['ridge_diffusion_path'])
-        else:
-            gt = Image.new('L', img.size)
+        img = Image.open(data['image_path']).convert('RGB')
+        # if 'ridge_diffusion_path' in data:
+        #     gt = Image.open(data['ridge_diffusion_path'])
+        # else:
+        #     gt = Image.new('L', img.size)
         img=self.resize(img)
-        gt=self.resize(gt)
+        # gt=self.resize(gt)
         if self.split == "train":
             seed = torch.seed()
             torch.manual_seed(seed)
             img = self.transforms(img)
-            torch.manual_seed(seed)
-            gt = self.transforms(gt)
+            # torch.manual_seed(seed)
+            # gt = self.transforms(gt)
 
         # Convert mask and pos_embed to tensor
-        gt = self.totenor(gt)
-        gt[gt != 0] = 1.
+        # gt = self.totenor(gt)
+        # gt[gt != 0] = 1.
         img = self.img_transforms(img)
         assert img.shape[1]==600,img.shape
+        if 'ridge' in data:
+            gt=1
+        else:
+            gt=0
         return img, gt, data_name
 
     def __len__(self):

@@ -29,7 +29,6 @@ model.eval()
 # Create the visualizations directory if it doesn't exist
 config_name=os.path.basename(args.cfg).split('.')[0]
 
-config_name='ridge_'+args.split_name
 visual_dir=os.path.join(args.result_path,config_name)
 os.makedirs(visual_dir, exist_ok=True)
 os.system(f"rm -rf {visual_dir}/*")
@@ -55,7 +54,7 @@ mask[mask>0]=1
 with torch.no_grad():
     for image_name in split_list:
         data=data_dict[image_name]
-        img = Image.open(data['enhanced_path'])
+        img = Image.open(data['image_path'])
         img_tensor = img_transforms(img)
         
         img=img_tensor.unsqueeze(0).to(device)
@@ -76,16 +75,16 @@ with torch.no_grad():
         if pred!=tar:
             if tar==0:
 
-                visual_mask(data['enhanced_path'],output_img,str(int(torch.sum(output_img))),save_path=os.path.join(visual_dir,'0',image_name))
+                visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),save_path=os.path.join(visual_dir,'0',image_name))
 
-                visual_points(data['enhanced_path'],output_img,
+                visual_points(data['image_path'],output_img,
                               save_path= os.path.join(visual_dir,'0',image_name[:-4]+'_point.jpg'))
             else:
 
-                visual_mask(data['enhanced_path'],output_img,str(int(torch.sum(output_img))),
+                visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name))
 
-                visual_points(data['enhanced_path'],output_img,
+                visual_points(data['image_path'],output_img,
                               save_path= os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
         labels.append(tar)
         predict.append(pred)
