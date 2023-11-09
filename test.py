@@ -54,7 +54,7 @@ mask[mask>0]=1
 with torch.no_grad():
     for image_name in split_list:
         data=data_dict[image_name]
-        img = Image.open(data['image_path'])
+        img = Image.open(data['enhanced_path'])
         img_tensor = img_transforms(img)
         
         img=img_tensor.unsqueeze(0).to(device)
@@ -62,7 +62,7 @@ with torch.no_grad():
         # Resize the output to the original image size
         
         output_img=torch.sigmoid(output_img)
-        output_img=torch.where(output_img>=0.5,torch.ones_like(output_img),torch.zeros_like(output_img))
+        output_img=torch.where(output_img>0.5,1,0)
         output_img=output_img*mask
         if 'ridge' in data:
             tar=1

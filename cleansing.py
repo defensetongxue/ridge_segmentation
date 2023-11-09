@@ -30,7 +30,7 @@ def generate_segmentation_mask(data_path, patch_size, stride):
             continue
         
         
-        img = Image.open(data['image_path']).convert("RGB")
+        img = Image.open(data['enhanced_path']).convert("RGB")
         img=img.resize((800,600),resample=Image.Resampling.BILINEAR)
         img_tensor = transforms.ToTensor()(img)
         mask = Image.open(data['ridge_diffusion_path'])

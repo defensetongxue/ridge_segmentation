@@ -152,7 +152,7 @@ class ridge_finetone_dataset(Dataset):
                 total_number+=len(samples_points)
         print(f"add {total_number} data")
     def _get_extra_sample(self, data_path,points, data,image_name, patch_size):
-        image_path = data['image_path']
+        image_path = data['enhanced_path']
         img = Image.open(image_path).convert('RGB')
 
         for sample_cnt, (x, y) in enumerate(points):
@@ -237,7 +237,7 @@ class ridege_finetone_val(Dataset):
     def __getitem__(self, idx):
         image_name=self.split_list[idx]
         data=self.data_dict[image_name]
-        img = Image.open(data['image_path']).convert('RGB')
+        img = Image.open(data['enhanced_path']).convert('RGB')
         if 'ridge' not in data:
             label=0
         else:
@@ -276,7 +276,7 @@ class ridge_all_dataset(Dataset):
         data_name = self.split_list[idx]
         data = self.data_dict[data_name]
         
-        img = Image.open(data['image_path']).convert('RGB')
+        img = Image.open(data['enhanced_path']).convert('RGB')
         # if 'ridge_diffusion_path' in data:
         #     gt = Image.open(data['ridge_diffusion_path'])
         # else:

@@ -44,7 +44,7 @@ train_loader = DataLoader(train_dataset,
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
                         # batch_size=args.configs['train']['batch_size'],
-                        batch_size=8,
+                        batch_size=24,
                         shuffle=False, num_workers=args.configs['num_works'])
 print("There is  patch size".format(args.configs['train']['batch_size']))
 print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")
