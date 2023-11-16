@@ -5,12 +5,35 @@ from config import get_config
 from torchvision import transforms
 from utils_ import get_instance,k_max_values_and_indices
 import models
-from PIL import Image
+from PIL import Image, ImageDraw,ImageFont
+import cv2
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, roc_auc_score
 import numpy as np
 # Parse arguments
 import time
+def plot_points_on_image(image_path, points, save_path=None):
+    # Open and resize the image
+    img = Image.open(image_path).resize((800, 600))
+    draw = ImageDraw.Draw(img)
+
+    # Optional: Load a font if you want to use specific font styles
+    try:
+        font = ImageFont.truetype("arial.ttf", 15)
+    except IOError:
+        font = ImageFont.load_default()
+
+    # Draw each point and its order
+    for i, (y, x) in enumerate(points):
+        # Draw the point
+        draw.ellipse([(x - 5, y - 5), (x + 5, y + 5)], fill="red", outline="red")
+
+        # Draw the order number near the point
+        draw.text((x + 10, y - 10), str(i + 1), fill="blue", font=font)
+
+    # Save or show the image
+    if save_path:
+        img.save(save_path)
 args = get_config()
 
 # Init the result file to store the pytorch model and other mid-result
@@ -30,10 +53,8 @@ model.eval()
 config_name=os.path.basename(args.cfg).split('.')[0]
 save_dir=os.path.join(args.data_path,'ridge_seg_mask')
 os.makedirs(save_dir, exist_ok=True)
-os.system(f"rm -rf {save_dir}/*")
+# os.system(f"rm -rf {save_dir}/*")
 # Test the model and save visualizations
-with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
-    split_list=json.load(f)['test']
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
@@ -46,12 +67,14 @@ img_transforms=transforms.Compose([
 begin=time.time()
 predict=[]
 labels=[]
-mask=Image.open('./mask.png')
+mask=Image.open('./mask.png').resize((800,600))
 mask=np.array(mask)
 mask[mask>0]=1
 with torch.no_grad():
-    for image_name in split_list:
+    for image_name in data_dict:
         data=data_dict[image_name]
+        if 'ridge' not in data:
+            continue
         img = Image.open(data['enhanced_path']).convert('RGB')
         img_tensor = img_transforms(img)
         
@@ -60,8 +83,9 @@ with torch.no_grad():
         # Resize the output to the original image size
         
         output_img=torch.sigmoid(output_img)
-        output_img=np.array(output_img*255,dtype=np.uint8)
-        seg_img=Image.fromarray(output_img)
+        output_img=output_img*mask
+        seg_img=np.array(output_img*255,dtype=np.uint8)
+        seg_img=Image.fromarray(seg_img)
         seg_img.save(os.path.join(save_dir,image_name))
         maxval,pred_point=k_max_values_and_indices(output_img,args.ridge_seg_number)
         value_list=[]
@@ -71,10 +95,16 @@ with torch.no_grad():
             value_list.append(value)
         for x,y in pred_point:
             point_list.append([int(x),int(y)])
+        # if 'ridge' in data:
+        #     plot_points_on_image(data["image_path"],pred_point,'./experiments/points/'+image_name)
+            # plot the point and order for each point in pred_point
+            # using PIL as possible, image in data["image_path"]  and resize(800,600)
         data_dict[image_name]['ridge_seg']={
             "ridge_seg_path":os.path.join(save_dir,image_name),
             "value_list":value_list,
-            "point_list":point_list
+            "point_list":point_list,
+            "orignal_weight":800,
+            "orignal_height":600
         }
 with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
     json.dump(data_dict,f)

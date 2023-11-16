@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-def k_max_values_and_indices(scores, k,r=50,threshold=0.0):
+def k_max_values_and_indices(scores, k,r=100,threshold=0.0):
     # Flatten the array and get the indices of the top-k values
 
     preds_list = []
@@ -12,7 +12,7 @@ def k_max_values_and_indices(scores, k,r=50,threshold=0.0):
         maxval = scores[idx]
         if maxval<threshold:
             break
-        maxvals_list.append(maxval)
+        maxvals_list.append(float(maxval))
         preds_list.append(idx)
 
         # Clear the square region around the point
