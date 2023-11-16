@@ -10,7 +10,28 @@ def to_device(x, device):
         return [to_device(xi,device) for xi in x]
     else:
         return x.to(device)
+def calculate_recall(labels, preds):
+    """
+    Calculate recall for class 1 in a binary classification task.
+    
+    Args:
+    labels (np.array): Array of true labels.
+    preds (np.array): Array of predicted labels.
+    
+    Returns:
+    float: Recall for class 1.
+    """
+    # Ensure labels and predictions are numpy arrays
+    labels = np.array(labels)
+    preds = np.array(preds)
 
+    # Calculate True Positives and False Negatives
+    true_positives = np.sum((labels == 1) & (preds == 1))
+    false_negatives = np.sum((labels == 1) & (preds == 0))
+
+    # Calculate recall
+    recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
+    return recall
 def train_epoch(model, optimizer, train_loader, loss_function, device,lr_scheduler,epoch):
     model.train()
     running_loss = 0.0
@@ -102,9 +123,10 @@ def fineone_val_epoch(model, val_loader, loss_function, device):
             labels.extend(targets)
     labels=np.array(labels)
     predict=np.array(predict)
+    recall=calculate_recall(labels,predict)
     acc = accuracy_score(labels, predict)
     auc = roc_auc_score(labels, predict)
-    return acc,auc
+    return acc,auc,recall
 
 def get_instance(module, class_name, *args, **kwargs):
     cls = getattr(module, class_name)

@@ -7,6 +7,7 @@ from utils_ import ridege_finetone_val
 import models
 import os,time
 from utils_.losses import BCELoss
+import numpy as np
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
 os.makedirs("experiments",exist_ok=True)
@@ -37,7 +38,8 @@ last_epoch = args.configs['train']['begin_epoch']
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
 # val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
 val_dataset=ridege_finetone_val(args.data_path,split_name=args.split_name,split='val')
-
+torch.manual_seed(0)
+np.random.seed(0)
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
                           batch_size=args.configs['train']['batch_size'],
@@ -58,17 +60,19 @@ early_stop_counter = 0
 best_val_loss = float('inf')
 total_epoches = args.configs['train']['end_epoch']
 max_auc=0
+max_recall=0
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
-    acc,auc  = fineone_val_epoch(model, val_loader, criterion, device)
+    acc,auc,recall  = fineone_val_epoch(model, val_loader, criterion, device)
     
     end_time = time.time()  # Record the end time of the epoch
     elapsed_time = end_time - start_time  # Calculate the elapsed time
     elapsed_hours = elapsed_time / 3600  # Convert elapsed time to hours
     print(f"Epoch {epoch + 1}/{total_epoches}, "
           f"Train Loss: {train_loss:.6f}, Val acc: {acc:.6f}, auc: {auc:.6f} "
+          f"Recall {recall:.6f} "
           f"Lr: {optimizer.state_dict()['param_groups'][0]['lr']:.6f}, "
           f"Time: {elapsed_hours:.2f} hours")
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
@@ -79,6 +83,12 @@ for epoch in range(last_epoch, total_epoches):
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
+    if recall>max_recall:
+        max_recall=recall
+        early_stop_counter=0
+        torch.save(model.state_dict(),
+                   os.path.join(args.save_dir,f"{args.split_name}_recall_{args.configs['save_name']}"))
+        print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_recall_{args.configs['save_name']}")))
     if epoch==total_epoches-1:
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_last_{args.configs['save_name']}"))

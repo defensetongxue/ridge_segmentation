@@ -174,6 +174,8 @@ def diffusion(heatmap,img_tensor,p0,p1,image_path):
         for i in [-1,0,1]:
             for j in [-1,0,1]:
                 p=[px[0]+i,px[1]+j]
+                p[0]=max(0,min(799,p[0]))
+                p[1]=max(0,min(599,p[1]))
                 if heatmap[p[1],p[0]]>0:
                     continue
                 if get_distance(p,p1)>now_distance:

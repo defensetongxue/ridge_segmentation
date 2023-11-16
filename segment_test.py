@@ -37,6 +37,8 @@ with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
+        transforms.Resize((600,800)),
+    
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
@@ -58,16 +60,6 @@ with torch.no_grad():
         # Resize the output to the original image size
         
         output_img=torch.sigmoid(output_img)
-        output_img=torch.where(output_img>=0.5,torch.ones_like(output_img),torch.zeros_like(output_img))
-        output_img=output_img*mask
-        if data['stage']>0:
-            tar=1
-        else:
-            tar=0
-        if (torch.sum(output_img)>=5):
-            pred=1
-        else:
-            pred=0
         output_img=np.array(output_img*255,dtype=np.uint8)
         seg_img=Image.fromarray(output_img)
         seg_img.save(os.path.join(save_dir,image_name))
@@ -81,16 +73,8 @@ with torch.no_grad():
             point_list.append([int(x),int(y)])
         data_dict[image_name]['ridge_seg']={
             "ridge_seg_path":os.path.join(save_dir,image_name),
-            "have_ridge":pred,
             "value_list":value_list,
             "point_list":point_list
         }
-        labels.append(tar)
-        predict.append(pred)
-acc = accuracy_score(labels, predict)
-auc = roc_auc_score(labels, predict)
-print(f"Accuracy: {acc:.4f}")
-print(f"AUC: {auc:.4f}")
-
 with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
     json.dump(data_dict,f)

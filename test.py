@@ -68,7 +68,7 @@ with torch.no_grad():
             tar=1
         else:
             tar=0
-        if (torch.sum(output_img)>=5):
+        if (torch.sum(output_img)>=1):
             pred=1
         else:
             pred=0
