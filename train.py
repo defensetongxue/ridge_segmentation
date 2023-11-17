@@ -11,6 +11,8 @@ import numpy as np
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
 os.makedirs("experiments",exist_ok=True)
+torch.manual_seed(0)
+np.random.seed(0)
 
 # Parse arguments
 args = get_config()
