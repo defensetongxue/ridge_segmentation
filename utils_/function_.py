@@ -116,7 +116,7 @@ def fineone_val_epoch(model, val_loader, loss_function, device):
 
             outputs = model(inputs).cpu()
             outputs=torch.sigmoid(outputs)
-            ridge_mask=torch.where(outputs.squeeze()>0.5,1,0).flatten(1,2)
+            ridge_mask=torch.where(outputs.squeeze(1)>0.5,1,0).flatten(1,2)
             ridge_mask=torch.sum(ridge_mask,dim=1)
             predict_label=torch.where(ridge_mask>5,1,0).tolist()
             predict.extend(predict_label)

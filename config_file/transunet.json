@@ -1,0 +1,28 @@
+{
+    "num_works": 15,
+    "save_name":"transUnet.pth",
+    "model": {
+        "loss_func": "BCELoss",
+        "loss_weight":1,
+        "name": "hrnet",
+        "pretrained": "./pretrained/hrnet.pth",
+        "extra": {}
+    },
+    "lr_strategy":{
+        "warmup_epochs":10,
+        "lr":1e-3,
+        "min_lr":1e-6,
+        "epochs":50
+    },
+    "train": {
+        "batch_size": 24,
+        "begin_epoch": 0,
+        "end_epoch": 50,
+        "early_stop": 100,
+        "optimizer": "adam",
+        "lr": 0.001,
+        "wd": 5e-4,
+        "momentum": 0.0,
+        "nesterov": false 
+    }
+}
