@@ -10,6 +10,7 @@ def to_device(x, device):
         return [to_device(xi,device) for xi in x]
     else:
         return x.to(device)
+    
 def calculate_recall(labels, preds):
     """
     Calculate recall for class 1 in a binary classification task.
@@ -32,6 +33,7 @@ def calculate_recall(labels, preds):
     # Calculate recall
     recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
     return recall
+
 def train_epoch(model, optimizer, train_loader, loss_function, device,lr_scheduler,epoch):
     model.train()
     running_loss = 0.0
@@ -57,38 +59,6 @@ def train_epoch(model, optimizer, train_loader, loss_function, device,lr_schedul
     
     return running_loss / len(train_loader)
 
-def train_total_epoch(model, optimizer, train_loader, loss_function, device,lr_scheduler,epoch):
-    model.train()
-    running_loss = 0.0
-    batch_length=len(train_loader)
-    for data_iter_step,(inputs, targets, meta) in enumerate(train_loader):
-        # Moving inputs and targets to the correct device
-        lr_scheduler.adjust_learning_rate(optimizer,epoch+(data_iter_step/batch_length))
-        inputs = to_device(inputs, device)
-        targets = to_device(targets, device)
-
-        optimizer.zero_grad()
-
-        # Assuming your model returns a tuple of outputs
-        outputs = model(inputs)
-        outputs = torch.sigmoid(outputs)
-        outputs=outputs.flatten(1,3)
-        # print(outputs.shape)
-        max_vals,_ =torch.max(outputs,dim=1) # bc,1
-        # print(max_vals.shape)
-         # Construct a bc, 2 output, each row is [max_val, 1-max_val]
-        output_class = torch.stack([ 1 - max_vals,max_vals], dim=1)
-        # print(output_class.shape)
-        # Compute loss; we assume targets are in bc shape
-        # CrossEntropyLoss expects inputs of shape (N, C) and targets of shape (N)
-        loss = loss_function(output_class, targets.long())
-
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-    
-    return running_loss / len(train_loader)
 def val_epoch(model, val_loader, loss_function, device):
     model.eval()
     running_loss = 0.0
@@ -105,28 +75,59 @@ def val_epoch(model, val_loader, loss_function, device):
 
     return running_loss / len(val_loader)
 
+
+def calculate_dice_iou(predict, target):
+    smooth = 1e-5
+    intersection = (predict * target).sum()
+    union = predict.sum() + target.sum()
+    dice = (2. * intersection + smooth) / (union + smooth)
+    iou = (intersection + smooth) / (union - intersection + smooth)
+    return dice.item(), iou.item()
+
 def fineone_val_epoch(model, val_loader, loss_function, device):
     model.eval()
     running_loss = 0.0
-    predict=[]
-    labels=[]
+    pixel_preds = []
+    pixel_labels = []
+    image_preds = []
+    image_labels = []
     with torch.no_grad():
-        for inputs, targets,meta in val_loader:
-            inputs = to_device(inputs, device)
+        for inputs, targets, meta in val_loader:
+            inputs = inputs.to(device)
 
             outputs = model(inputs).cpu()
-            outputs=torch.sigmoid(outputs)
-            ridge_mask=torch.where(outputs.squeeze(1)>0.5,1,0).flatten(1,2)
-            ridge_mask=torch.sum(ridge_mask,dim=1)
-            predict_label=torch.where(ridge_mask>5,1,0).tolist()
-            predict.extend(predict_label)
-            labels.extend(targets)
-    labels=np.array(labels)
-    predict=np.array(predict)
-    recall=calculate_recall(labels,predict)
-    acc = accuracy_score(labels, predict)
-    auc = roc_auc_score(labels, predict)
-    return acc,auc,recall
+            outputs = torch.sigmoid(outputs)
+            outputs_flat = outputs.view(-1)
+            targets_flat = targets.view(-1)
+
+            # For pixel-level metrics
+            pixel_preds.extend(outputs_flat.numpy())
+            pixel_labels.extend(targets_flat.numpy())
+
+            # For image-level classification
+            ridge_mask = torch.where(outputs.squeeze(1) > 0.5, 1, 0).flatten(1, 2)
+            ridge_mask_sum = torch.sum(ridge_mask, dim=1)
+            predict_label = torch.where(ridge_mask_sum > 5, 1, 0).tolist()
+            image_preds.extend(predict_label)
+            image_labels.extend(targets)
+
+    # Convert to NumPy arrays for metric calculation
+    pixel_preds = np.array(pixel_preds)
+    pixel_labels = np.array(pixel_labels)
+    image_preds = np.array(image_preds)
+    image_labels = np.array(image_labels)
+
+    # Image-level metrics
+    image_recall = calculate_recall(image_labels, image_preds)
+    image_acc = accuracy_score(image_labels, image_preds)
+    image_auc = roc_auc_score(image_labels, image_preds)
+
+    # Pixel-level metrics
+    pixel_acc = accuracy_score(pixel_labels, pixel_preds > 0.5)
+    pixel_auc = roc_auc_score(pixel_labels, pixel_preds)
+    dice, iou = calculate_dice_iou(torch.tensor(pixel_preds > 0.5, dtype=torch.float32), torch.tensor(pixel_labels, dtype=torch.float32))
+
+    return image_acc, image_auc, image_recall, pixel_acc, pixel_auc, dice, iou
 
 def get_instance(module, class_name, *args, **kwargs):
     cls = getattr(module, class_name)
@@ -160,6 +161,7 @@ def get_optimizer(cfg, model):
     else:
         raise
     return optimizer
+
 def get_lr_scheduler(optimizer, cfg):
     if cfg['method'] == 'reduce_plateau':
         lr_scheduler = ReduceLROnPlateau(

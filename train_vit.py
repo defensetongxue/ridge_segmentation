@@ -59,19 +59,21 @@ total_epoches = args.configs['train']['end_epoch']
 for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
-    acc,auc,recall = fineone_val_epoch(model, val_loader, criterion, device)
+    image_acc, image_auc, image_recall, pixel_acc, pixel_auc, dice, iou = fineone_val_epoch(model, val_loader, criterion, device)
     
     end_time = time.time()  # Record the end time of the epoch
     elapsed_time = end_time - start_time  # Calculate the elapsed time
     elapsed_hours = elapsed_time / 3600  # Convert elapsed time to hours
     print(f"Epoch {epoch + 1}/{total_epoches}, "
-          f"Train Loss: {train_loss:.6f}, Val acc: {acc:.6f}, auc: {auc:.6f}, recall: {recall:.6f} "
+          f"Train Loss: {train_loss:.6f}, "
+          f"Val acc: {image_acc:.6f}, auc: {image_auc:.6f} "
+          f"Recall {image_recall:.6f} "
+          f"Pixel Acc: {pixel_acc:.6f} Auc: {pixel_auc:.6f}, Dice: {dice:.6f} iou: {iou:.6f} "
           f"Lr: {optimizer.state_dict()['param_groups'][0]['lr']:.6f}, "
           f"Time: {elapsed_hours:.2f} hours")
-    # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     # Early stopping
-    if auc > best_auc:
-        best_auc = auc
+    if image_auc > best_auc:
+        best_auc = image_auc
         early_stop_counter = 0
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
