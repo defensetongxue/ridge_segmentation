@@ -10,3 +10,4 @@ tmp.*
 ring.py
 .vscode
 json_src
+*.npz

@@ -69,7 +69,7 @@ class ridge_trans_dataset(Dataset):
         else:
             self.split_list=split_list
         self.split = split
-        self.resize=transforms.Resize((640,640))
+        self.resize=transforms.Resize((512,512))
         self.transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomVerticalFlip(p=0.5),

@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from config import get_config
 from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
 from utils_ import ridge_trans_dataset as CustomDatset,fineone_val_epoch
-from models.transUNet import UNet
+from models import get_transUnet
 import os,time
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
@@ -19,11 +19,11 @@ print(f"using config file {args.cfg}")
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
-model = UNet()
+model = get_transUnet(512,1)
 criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = model.to(device)
+# model = model.to(device)
 print(f"using {device} for training")
 if os.path.isfile("./checkpoints/1_hrnet.bth"):
     print(f"loadding the exit checkpoints ./checkpoints/1_hrnet.bth")
