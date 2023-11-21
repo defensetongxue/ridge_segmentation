@@ -147,7 +147,7 @@ def get_optimizer(cfg, model):
     elif cfg['train']['optimizer'] == 'adam':
         optimizer = optim.Adam(
             filter(lambda p: p.requires_grad, model.parameters()),
-            lr=cfg['train']['lr']
+            lr=cfg['train']['lr'],weight_decay=cfg['train']['wd']
         )
     elif cfg['train']['optimizer'] == 'rmsprop':
         optimizer = optim.RMSprop(
@@ -162,24 +162,6 @@ def get_optimizer(cfg, model):
         raise
     return optimizer
 
-def get_lr_scheduler(optimizer, cfg):
-    if cfg['method'] == 'reduce_plateau':
-        lr_scheduler = ReduceLROnPlateau(
-            optimizer,
-            mode='min',
-            patience=cfg['reduce_plateau_patience'],
-            factor=cfg['reduce_plateau_factor'],
-            cooldown=cfg['cooldown'],
-            verbose=False
-        )
-    elif cfg['method'] == 'cosine_annealing':
-        lr_scheduler = CosineAnnealingLR(optimizer, T_max=cfg['cosine_annealing_T_max'])
-    elif cfg['method'] == 'constant':
-        lr_scheduler = None  # No learning rate scheduling for constant LR
-    else:
-        raise ValueError("Invalid learning rate scheduling method")
-    
-    return lr_scheduler
 
 class lr_sche():
     def __init__(self,config):
