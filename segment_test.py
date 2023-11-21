@@ -3,12 +3,9 @@ import os
 import torch
 from config import get_config
 from torchvision import transforms
-from utils_ import get_instance,k_max_values_and_indices
+from util import get_instance,k_max_values_and_indices
 import models
 from PIL import Image, ImageDraw,ImageFont
-import cv2
-import torch.nn.functional as F
-from sklearn.metrics import accuracy_score, roc_auc_score
 import numpy as np
 # Parse arguments
 import time

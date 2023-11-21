@@ -3,7 +3,7 @@ import os
 import torch
 from config import get_config
 from torchvision import transforms
-from utils_ import get_instance,visual_mask,visual_points
+from util import get_instance,visual_mask,visual_points
 import models
 from PIL import Image
 import torch.nn.functional as F

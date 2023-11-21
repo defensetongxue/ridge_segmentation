@@ -1,8 +1,8 @@
 import torch
 from torch.utils.data import DataLoader
 from config import get_config
-from utils_ import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
-from utils_ import ridge_trans_dataset as CustomDatset,fineone_val_epoch
+from util import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
+from util import ridge_trans_dataset as CustomDatset,fineone_val_epoch
 from models import get_transUnet
 import os,time
 # Initialize the folder

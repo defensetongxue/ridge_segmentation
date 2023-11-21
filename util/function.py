@@ -1,8 +1,7 @@
 import torch,math
 from torch import optim
 import numpy as np
-from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
-from sklearn.metrics import accuracy_score, roc_auc_score
+from .metric import Metrics
 def to_device(x, device):
     if isinstance(x, tuple):
         return tuple(to_device(xi, device) for xi in x)
@@ -11,28 +10,7 @@ def to_device(x, device):
     else:
         return x.to(device)
     
-def calculate_recall(labels, preds):
-    """
-    Calculate recall for class 1 in a binary classification task.
-    
-    Args:
-    labels (np.array): Array of true labels.
-    preds (np.array): Array of predicted labels.
-    
-    Returns:
-    float: Recall for class 1.
-    """
-    # Ensure labels and predictions are numpy arrays
-    labels = np.array(labels)
-    preds = np.array(preds)
 
-    # Calculate True Positives and False Negatives
-    true_positives = np.sum((labels == 1) & (preds == 1))
-    false_negatives = np.sum((labels == 1) & (preds == 0))
-
-    # Calculate recall
-    recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
-    return recall
 
 def train_epoch(model, optimizer, train_loader, loss_function, device,lr_scheduler,epoch):
     model.train()
@@ -59,32 +37,7 @@ def train_epoch(model, optimizer, train_loader, loss_function, device,lr_schedul
     
     return running_loss / len(train_loader)
 
-def val_epoch(model, val_loader, loss_function, device):
-    model.eval()
-    running_loss = 0.0
-
-    with torch.no_grad():
-        for inputs, targets,meta in val_loader:
-            inputs = to_device(inputs, device)
-            targets = to_device(targets, device)
-
-            outputs = model(inputs)
-            loss = loss_function(outputs, targets)
-
-            running_loss += loss.item()
-
-    return running_loss / len(val_loader)
-
-
-def calculate_dice_iou(predict, target):
-    smooth = 1e-5
-    intersection = (predict * target).sum()
-    union = predict.sum() + target.sum()
-    dice = (2. * intersection + smooth) / (union + smooth)
-    iou = (intersection + smooth) / (union - intersection + smooth)
-    return dice.item(), iou.item()
-
-def fineone_val_epoch(model, val_loader, loss_function, device):
+def val_epoch(model, val_loader, loss_function, device,metirc:Metrics):
     model.eval()
     running_loss = 0.0
     pixel_preds = []
@@ -95,7 +48,11 @@ def fineone_val_epoch(model, val_loader, loss_function, device):
         for inputs, targets, meta in val_loader:
             inputs = inputs.to(device)
 
-            outputs = model(inputs).cpu()
+            outputs = model(inputs)
+            loss = loss_function(outputs, targets)
+            running_loss += loss.item()
+            
+            outputs=outputs.cpu()
             outputs = torch.sigmoid(outputs)
             outputs_flat = outputs.view(-1)
             targets_flat = targets.view(-1)
@@ -117,17 +74,8 @@ def fineone_val_epoch(model, val_loader, loss_function, device):
     image_preds = np.array(image_preds)
     image_labels = np.array(image_labels)
 
-    # Image-level metrics
-    image_recall = calculate_recall(image_labels, image_preds)
-    image_acc = accuracy_score(image_labels, image_preds)
-    image_auc = roc_auc_score(image_labels, image_preds)
-
-    # Pixel-level metrics
-    pixel_acc = accuracy_score(pixel_labels, pixel_preds > 0.5)
-    pixel_auc = roc_auc_score(pixel_labels, pixel_preds)
-    dice, iou = calculate_dice_iou(torch.tensor(pixel_preds > 0.5, dtype=torch.float32), torch.tensor(pixel_labels, dtype=torch.float32))
-
-    return image_acc, image_auc, image_recall, pixel_acc, pixel_auc, dice, iou
+    metirc.update(pixel_preds,pixel_labels,image_preds,image_labels)
+    return running_loss / len(val_loader),  metirc
 
 def get_instance(module, class_name, *args, **kwargs):
     cls = getattr(module, class_name)
@@ -145,7 +93,7 @@ def get_optimizer(cfg, model):
             nesterov=cfg['train']['nesterov']
         )
     elif cfg['train']['optimizer'] == 'adam':
-        optimizer = optim.Adam(
+        optimizer = optim.AdamW(
             filter(lambda p: p.requires_grad, model.parameters()),
             lr=cfg['train']['lr'],weight_decay=cfg['train']['wd']
         )
