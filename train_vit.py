@@ -23,12 +23,6 @@ model = get_transUnet(512,1)
 criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# model = model.to(device)
-print(f"using {device} for training")
-if os.path.isfile("./checkpoints/1_hrnet.bth"):
-    print(f"loadding the exit checkpoints ./checkpoints/1_hrnet.bth")
-    model.load_state_dict(
-    torch.load("./checkpoints/1_hrnet.bth"))
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
 lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
