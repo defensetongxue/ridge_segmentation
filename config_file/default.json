@@ -17,7 +17,7 @@
         "warmup_epochs":10,
         "lr":1e-3,
         "min_lr":1e-6,
-        "epochs":40
+        "epochs":50
     },
     "train": {
         "batch_size": 20,
