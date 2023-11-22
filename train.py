@@ -84,6 +84,7 @@ for epoch in range(last_epoch, total_epoches):
           f"Time: {elapsed_hours:.2f} hours")
     
     print(metric)
+    metric.reset()
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     # Early stopping
     if metric.image_auc > max_auc:
