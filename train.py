@@ -87,3 +87,6 @@ for epoch in range(last_epoch, total_epoches):
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
+        
+key=f'{str(args.cfg.split[-5])}_'
+metric._store()
