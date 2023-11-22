@@ -94,7 +94,6 @@ for epoch in range(last_epoch, total_epoches):
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
     
     metric.reset()
-metric.reset()
 test_loss,metric = val_epoch(model, test_loader, criterion, device,metric)
 print(metric)
 key=f'{str(args.cfg.split[-5])}_'
