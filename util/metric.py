@@ -62,7 +62,7 @@ class Metrics:
         # Update pixel-level metrics iteratively, accounting for batch size
         self.iter_num += bc
         self.pixel_acc += accuracy_score(pixel_labels, pixel_preds > 0.5) * bc
-        self.pixel_recall=calculate_recall(pixel_labels,pixel_preds > 0.5)* bc
+        self.pixel_recall += calculate_recall(pixel_labels,pixel_preds > 0.5)* bc
         if len(np.unique(pixel_labels)) > 1:
             self.pixel_auc += roc_auc_score(pixel_labels, pixel_preds) * bc
         else:
