@@ -111,7 +111,7 @@ class ridge_trans_dataset(Dataset):
     def __len__(self):
         return len(self.split_list)
     
-class ridege_finetone_val(Dataset):
+class ridge_finetone_val(Dataset):
     def __init__(self,data_path,split_name,split) :
         super().__init__()
         with open(os.path.join(data_path,'annotations.json'),'r') as f:
@@ -131,10 +131,16 @@ class ridege_finetone_val(Dataset):
         image_name=self.split_list[idx]
         data=self.data_dict[image_name]
         img = Image.open(data['enhanced_path']).convert('RGB')
+        if 'ridge_diffusion_path' in data:
+            mask = Image.open(data['ridge_diffusion_path']).convert('L').resize((800,600))
+        else:
+            mask = Image.new('L',(800,600))
+        mask= transforms.ToTensor()(mask)
+        mask[mask!=0]=1.
         if 'ridge' not in data:
             label=0
         else:
             label=1
         img=self.img_transforms(img)
-        return img,label,data['stage']
+        return img,label,mask
     

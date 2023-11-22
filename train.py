@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from config import get_config
 from util import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
 from util import ridge_segmentataion_dataset as CustomDatset
-from util import ridege_finetone_val
+from util import ridge_finetone_val
 import models
 import os,time
 from  util.metric import Metrics
@@ -39,7 +39,8 @@ last_epoch = args.configs['train']['begin_epoch']
 # Load the datasets
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
 # val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
-val_dataset=ridege_finetone_val(args.data_path,split_name=args.split_name,split='val')
+val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val')
+test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test')
 torch.manual_seed(0)
 np.random.seed(0)
 # Create the data loaders
@@ -47,6 +48,10 @@ train_loader = DataLoader(train_dataset,
                           batch_size=args.configs['train']['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
+                        # batch_size=args.configs['train']['batch_size'],
+                        batch_size=24,
+                        shuffle=False, num_workers=args.configs['num_works'])
+test_loader = DataLoader(val_dataset,
                         # batch_size=args.configs['train']['batch_size'],
                         batch_size=24,
                         shuffle=False, num_workers=args.configs['num_works'])
@@ -88,5 +93,8 @@ for epoch in range(last_epoch, total_epoches):
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
         
+metric.reset()
+test_loss,metric = val_epoch(model, test_loader, criterion, device,metric)
+print(metric)
 key=f'{str(args.cfg.split[-5])}_'
 metric._store()
