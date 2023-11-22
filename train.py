@@ -84,7 +84,6 @@ for epoch in range(last_epoch, total_epoches):
           f"Time: {elapsed_hours:.2f} hours")
     
     print(metric)
-    metric.reset()
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     # Early stopping
     if metric.image_auc > max_auc:
@@ -93,7 +92,8 @@ for epoch in range(last_epoch, total_epoches):
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
-        
+    
+    metric.reset()
 metric.reset()
 test_loss,metric = val_epoch(model, test_loader, criterion, device,metric)
 print(metric)
