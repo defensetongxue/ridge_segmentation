@@ -96,5 +96,5 @@ for epoch in range(last_epoch, total_epoches):
     metric.reset()
 test_loss,metric = val_epoch(model, test_loader, criterion, device,metric)
 print(metric)
-key=f'{str(args.cfg.split[-5])}_'
+key=f'{str(os.path.basename(args.cfg)[:-5])}'
 metric._store()
