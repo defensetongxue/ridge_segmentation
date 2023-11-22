@@ -1,6 +1,6 @@
 {
     "num_works": 15,
-    "save_name":"unet_torch.bth",
+    "save_name":"unet_torch.pth",
     "model": {
         "loss_func": "BCELoss",
         "loss_weight":1.0,
@@ -20,7 +20,7 @@
         "batch_size": 50,
         "begin_epoch": 0,
         "end_epoch": 50,
-        "early_stop": 30,
+        "early_stop": 100,
         "optimizer": "adam",
         "lr": 0.001,
         "wd": 5e-4,
