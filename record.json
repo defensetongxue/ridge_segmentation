@@ -1,0 +1,15 @@
+{
+    "hrnet_small": {
+        "1": {
+            "image_accuracy": 0.7940,
+            "image_auc": 0.8703,
+            "image_recall": 0.9926,
+            "pixel_accuracy": 0.9988,
+            "pixel_auc": 0.9848,
+            "dice": 0.2103,
+            "iou": 0.1473,
+            "pixel_recall": 0.2236,
+            "save_epoch": 26
+        }
+    }
+}
