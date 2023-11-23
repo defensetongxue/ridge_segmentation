@@ -85,7 +85,7 @@ class Metrics:
                 f"[{self.header}] "
                 f"Pixel - Acc: {self.pixel_acc:.4f}, AUC: {self.pixel_auc:.4f}, Dice: {self.dice:.4f}, IOU: {self.iou:.4f}, Recall: {self.pixel_recall:.4f}")
 
-    def _store(self, key, split_name, save_epoch, param, save_path='./record.json'):
+    def _store(self, key, split_name, save_epoch, save_path='./record.json'):
         res = {
             "image_accuracy": round(self.image_acc, 4),
             "image_auc": round(self.image_auc, 4),
@@ -94,6 +94,7 @@ class Metrics:
             "pixel_auc": round(self.pixel_auc, 4),
             "dice": round(self.dice, 4),
             "iou": round(self.iou, 4),
+            "pixel_recall":self.pixel_recall,
             "save_epoch": save_epoch
         }
 
@@ -108,7 +109,6 @@ class Metrics:
         # Append the new data
         if key not in existing_data:
             existing_data[key]={
-                "param":param
             }
         existing_data[key][split_name]=res
 

@@ -69,6 +69,7 @@ best_val_loss = float('inf')
 total_epoches = args.configs['train']['end_epoch']
 max_auc=0
 max_recall=0
+save_epoch=-1
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
@@ -87,6 +88,7 @@ for epoch in range(last_epoch, total_epoches):
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     # Early stopping
     if metric.image_auc > max_auc:
+        save_epoch=epoch
         max_auc=metric.image_auc
         early_stop_counter = 0
         torch.save(model.state_dict(),
@@ -97,4 +99,4 @@ for epoch in range(last_epoch, total_epoches):
 test_loss,metric = val_epoch(model, test_loader, criterion, device,metric)
 print(metric)
 key=f'{str(os.path.basename(args.cfg)[:-5])}'
-metric._store()
+metric._store(key,args.split_name,save_epoch)
