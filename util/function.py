@@ -90,7 +90,7 @@ def get_optimizer(cfg, model):
             weight_decay=cfg['train']['wd'],
             nesterov=cfg['train']['nesterov']
         )
-    elif cfg['train']['optimizer'] == 'adam':
+    elif cfg['train']['optimizer'] == 'adamw':
         optimizer = optim.AdamW(
             filter(lambda p: p.requires_grad, model.parameters()),
             lr=cfg['train']['lr'], weight_decay=cfg['train']['wd']

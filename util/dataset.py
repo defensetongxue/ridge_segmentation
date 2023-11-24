@@ -85,7 +85,7 @@ class ridge_trans_dataset(Dataset):
         image_name = self.split_list[idx]
         data = self.data_dict[image_name]
         
-        img = Image.open(data['image_path']).convert('RGB')
+        img = Image.open(data['enhanced_path']).convert('RGB')
         if 'ridge_diffusion_path' in data:
             gt = Image.open(data['ridge_diffusion_path'])
         else:

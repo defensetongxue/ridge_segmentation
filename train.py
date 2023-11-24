@@ -41,8 +41,6 @@ train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
 # val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val')
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test')
-torch.manual_seed(0)
-np.random.seed(0)
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
                           batch_size=args.configs['train']['batch_size'],
