@@ -70,6 +70,8 @@ mask[mask>0]=1
 with torch.no_grad():
     for image_name in data_dict:
         data=data_dict[image_name]
+        # if 'ridge' not in data:
+        #     continue
         img = Image.open(data['enhanced_path']).convert('RGB')
         img_tensor = img_transforms(img)
         

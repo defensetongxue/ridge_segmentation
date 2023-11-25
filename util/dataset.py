@@ -48,7 +48,7 @@ class ridge_segmentataion_dataset(Dataset):
         gt = self.totenor(gt)
         gt[gt != 0] = 1.
         img = self.img_transforms(img)
-        return img, gt, data
+        return img, gt, data_name
 
     def __len__(self):
         return len(self.split_list)
@@ -118,6 +118,18 @@ class ridge_finetone_val(Dataset):
             self.data_dict=json.load(f)
         with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
             self.split_list=json.load(f)[split]
+            
+        new=[]
+        cnt=5
+        for image_name  in self.split_list:
+            if self.data_dict[image_name]['stage']>0:
+                new.append(image_name)
+            else:
+                if cnt<=0:
+                    continue
+                new.append(image_name)
+                cnt-=1
+        self.split_list=new
         assert split !='train'
         self.img_transforms=transforms.Compose([
             transforms.Resize((600,800)),
