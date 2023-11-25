@@ -82,7 +82,7 @@ with torch.no_grad():
         seg_img=np.array(output_img*255,dtype=np.uint8)
         seg_img=Image.fromarray(seg_img)
         seg_img.save(os.path.join(save_dir,image_name))
-        maxval,pred_point=k_max_values_and_indices(output_img,args.ridge_seg_number)
+        maxval,pred_point=k_max_values_and_indices(output_img,args.ridge_seg_number,r=60)
         value_list=[]
         point_list=[]
         for value in maxval:
