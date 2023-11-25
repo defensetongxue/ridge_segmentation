@@ -473,7 +473,7 @@ class HighResolutionNet(nn.Module):
             #        '=> loading {} pretrained model {}'.format(k, pretrained))
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
-        trunc_normal_(self.last_layer[-1].weight,std=5e-3)
+        trunc_normal_(self.last_layer[-1].weight,std=0.02)
 def get_seg_model(cfg, **kwargs):
     model = HighResolutionNet(cfg, **kwargs)
     model.init_weights(cfg['pretrained'])
