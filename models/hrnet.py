@@ -326,7 +326,60 @@ class HighResolutionNet(nn.Module):
                 stride=1,
                 padding=1 if extra['final_conv_kernel'] == 3 else 0)
         )
+        # Classification Head
+        self.incre_modules, self.downsamp_modules, \
+            self.final_layer = self._make_head(pre_stage_channels)
 
+        self.classifier = nn.Linear(2048, 4)
+
+    def _make_head(self, pre_stage_channels):
+        head_block = Bottleneck
+        head_channels = [32, 64, 128, 256]
+
+        # Increasing the #channels on each resolution 
+        # from C, 2C, 4C, 8C to 128, 256, 512, 1024
+        incre_modules = []
+        for i, channels  in enumerate(pre_stage_channels):
+            incre_module = self._make_layer(head_block,
+                                            channels,
+                                            head_channels[i],
+                                            1,
+                                            stride=1)
+            incre_modules.append(incre_module)
+        incre_modules = nn.ModuleList(incre_modules)
+            
+        # downsampling modules
+        downsamp_modules = []
+        for i in range(len(pre_stage_channels)-1):
+            in_channels = head_channels[i] * head_block.expansion
+            out_channels = head_channels[i+1] * head_block.expansion
+
+            downsamp_module = nn.Sequential(
+                nn.Conv2d(in_channels=in_channels,
+                          out_channels=out_channels,
+                          kernel_size=3,
+                          stride=2,
+                          padding=1),
+                nn.BatchNorm2d(out_channels, momentum=BN_MOMENTUM),
+                nn.ReLU(inplace=True)
+            )
+
+            downsamp_modules.append(downsamp_module)
+        downsamp_modules = nn.ModuleList(downsamp_modules)
+
+        final_layer = nn.Sequential(
+            nn.Conv2d(
+                in_channels=head_channels[3] * head_block.expansion,
+                out_channels=2048,
+                kernel_size=1,
+                stride=1,
+                padding=0
+            ),
+            nn.BatchNorm2d(2048, momentum=BN_MOMENTUM),
+            nn.ReLU(inplace=True)
+        )
+
+        return incre_modules, downsamp_modules, final_layer
     def _make_transition_layer(
             self, num_channels_pre_layer, num_channels_cur_layer):
         num_branches_cur = len(num_channels_cur_layer)
@@ -440,6 +493,23 @@ class HighResolutionNet(nn.Module):
             else:
                 x_list.append(y_list[i])
         x = self.stage4(x_list)
+        # classifier
+
+        # Classification Head
+        y = self.incre_modules[0](x[0])
+        for i in range(len(self.downsamp_modules)):
+            y = self.incre_modules[i+1](x[i+1]) + \
+                        self.downsamp_modules[i](y)
+
+        y = self.final_layer(y)
+
+        if torch._C._get_tracing_state():
+            y = y.flatten(start_dim=2).mean(dim=2)
+        else:
+            y = F.avg_pool2d(y, kernel_size=y.size()
+                                 [2:]).view(y.size(0), -1)
+
+        y = self.classifier(y)
 
         # Upsampling
         x0_h, x0_w = x[0].size(2), x[0].size(3)
@@ -452,7 +522,7 @@ class HighResolutionNet(nn.Module):
 
         x = self.last_layer(x)
         x=F.interpolate(x, size=(x0_h*4, x0_w*4), mode='bilinear', align_corners=True)
-        return x
+        return x,y
 
     def init_weights(self, pretrained='',):
         logger.info('=> init weights from normal distribution')
@@ -462,18 +532,30 @@ class HighResolutionNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+        self.load_pretrained(pretrained)   
+    def load_pretrained(self, pretrained):
         if os.path.isfile(pretrained):
             pretrained_dict = torch.load(pretrained)
-            print('=> loading pretrained model {}'.format(pretrained))
+            print('=> Loading pretrained model {}'.format(pretrained))
             model_dict = self.state_dict()
-            pretrained_dict = {k: v for k, v in pretrained_dict.items()
-                               if k in model_dict.keys()}
-            # for k, _ in pretrained_dict.items():
-            #    print(
-            #        '=> loading {} pretrained model {}'.format(k, pretrained))
-            model_dict.update(pretrained_dict)
-            self.load_state_dict(model_dict)
-        trunc_normal_(self.last_layer[-1].weight,std=0.02)
+
+            # Filter out mismatched keys
+            mismatched_keys = []
+            for k, v in pretrained_dict.items():
+                if k in model_dict:
+                    if pretrained_dict[k].shape == model_dict[k].shape:
+                        model_dict[k] = v
+                    else:
+                        mismatched_keys.append(k)
+
+            # Update the model with the matching keys
+            self.load_state_dict(model_dict, strict=False)
+
+            if mismatched_keys:
+                print("The following layers are skipped due to size mismatch:")
+                for key in mismatched_keys:
+                    print(f"- {key}")
+
 def get_seg_model(cfg, **kwargs):
     model = HighResolutionNet(cfg, **kwargs)
     model.init_weights(cfg['pretrained'])

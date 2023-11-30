@@ -119,20 +119,13 @@ class ridge_finetone_val(Dataset):
         with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
             self.split_list=json.load(f)[split]
             
-        new=[]
-        cnt=postive_cnt
-        for image_name  in self.split_list:
-            if self.data_dict[image_name]['stage']>0:
-                new.append(image_name)
-            else:
-                if cnt<=0:
-                    continue
-                new.append(image_name)
-                cnt-=1
-        self.split_list=new
-        self.mask_resize=transforms.Resize((600,800))
+        self.enhanced = transforms.Compose([
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
+            Fix_RandomRotation(),
+        ])
+        self.mask_resize=transforms.Resize((600,600))
         self.img_transforms=transforms.Compose([
-            transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
@@ -144,19 +137,22 @@ class ridge_finetone_val(Dataset):
         image_name=self.split_list[idx]
         data=self.data_dict[image_name]
         img = Image.open(data['enhanced_path']).convert('RGB')
+        img=self.mask_resize(img)
         if 'ridge_diffusion_path' in data:
             mask = Image.open(data['ridge_diffusion_path']).convert('L')
             mask=self.mask_resize(mask)
-            mask= transforms.ToTensor()(mask)
-            mask[mask!=0]=1.
         else:
-            mask=torch.zeros((1,600,800))
-        if 'ridge' not in data:
-            label=0
-        else:
-            label=1
+            mask=Image.new('L',(600,600))
+            
+        if self.split == "train":
+            seed = torch.seed()
+            torch.manual_seed(seed)
+            img = self.enhanced(img)
+            torch.manual_seed(seed)
+            mask = self.enhanced(mask)
+            
         img=self.img_transforms(img)
-        if  self.split == 'train':
-            return img,mask,label
-        return img,label,mask
+        mask= transforms.ToTensor()(mask)
+        mask[mask!=0]=1.
+        return img,(mask,data['stage']),image_name
     

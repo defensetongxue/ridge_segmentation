@@ -25,9 +25,9 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
 criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
-model.load_state_dict(
-    torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
-)
+# model.load_state_dict(
+#     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")), strict=False
+# )
 model.train()
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)

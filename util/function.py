@@ -44,34 +44,44 @@ def train_epoch(model, optimizer, train_loader, loss_function, device, lr_schedu
 def val_epoch(model, val_loader, loss_function, device, metric: Metrics):
     model.eval()
     running_loss = 0.0
-    image_preds = []
-    image_labels = []
-
+    stage_preds = []
+    stage_labels=[]
+    stage_probs= []
+    ridge_preds= []
+    ridge_labels = []
     with torch.no_grad():
-        for inputs, targets, mask in val_loader:
+        for inputs, (mask,targets),image_name  in val_loader:
             inputs = inputs.to(device)
             mask = mask.to(device)
+            targets=targets.to(device)
             outputs = model(inputs)
-            loss = loss_function(outputs, mask)
+            loss = loss_function(outputs, (mask,targets))
             running_loss += loss.item()
-
-            # Process pixel-level metrics
-            outputs = torch.sigmoid(outputs.cpu())
-            outputs_flatten=outputs.view(-1)
-            targets_flat = mask.cpu().view(-1)
-            metric.update_pixel_metrics(outputs_flatten.numpy(), targets_flat.numpy(),mask.shape[0])
-
-            # Store image-level predictions and labels
-            ridge_mask = torch.where(outputs > 0.5, 1, 0).flatten(1, -1)
+            seg_output,stage_output=outputs
+            
+            # ridge
+            seg_output = torch.sigmoid(seg_output.cpu())
+            ridge_mask = torch.where(seg_output > 0.5, 1, 0).flatten(1, -1)
             ridge_mask_sum = torch.sum(ridge_mask, dim=1)
-            predict_label = torch.where(ridge_mask_sum > 0, 1, 0).tolist()
-            image_preds.extend(predict_label)
-            image_labels.extend(targets.tolist())
-    image_preds=np.array(image_preds)
-    image_labels=np.array(image_labels)
+            ridge_pred = torch.where(ridge_mask_sum > 0, 1, 0).tolist()
+            
+            # stage
+            stage_prob= torch.softmax(stage_output.detach().cpu(),dim=-1).numpy()
+            stage_pred=np.argmax(stage_prob,axis=1)
+            
+            stage_labels.extend(targets.tolist())
+            stage_preds.extend(stage_pred)
+            stage_probs.append(stage_prob)
+            ridge_labels.extend((targets>0).long().tolist())
+            ridge_preds.extend(ridge_pred)
+            
+    stage_labels=np.array(stage_labels)
+    stage_preds=np.array(stage_preds)
+    stage_probs=np.concatenate(stage_probs, axis=0) 
+    ridge_labels=np.array(ridge_labels)
+    ridge_preds=np.array(ridge_preds)
     # Update image-level metrics after processing all batches
-    metric.update_image_metrics(image_preds, image_labels)
-    metric.finalize_metrics()
+    metric.update(ridge_preds,ridge_labels,stage_preds,stage_labels,stage_probs)
     return running_loss / len(val_loader), metric
 
 def get_instance(module, class_name, *args, **kwargs):
