@@ -35,7 +35,7 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='train')
+train_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='train',postive_cnt=0)
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e6)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e6)
 # Create the data loaders

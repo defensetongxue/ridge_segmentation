@@ -1,15 +1,15 @@
 {
     "hrnet_small": {
         "1": {
-            "image_accuracy": 0.9602,
-            "image_auc": 0.9798,
-            "image_recall": 0.9597,
-            "pixel_accuracy": 0.9958,
-            "pixel_auc": 0.9777,
-            "dice": 0.4783,
-            "iou": 0.316,
-            "pixel_recall": 0.4245152355781631,
-            "save_epoch": 17
+            "image_accuracy": 0.9701,
+            "image_auc": 0.9849,
+            "image_recall": 0.9698,
+            "pixel_accuracy": 0.9957,
+            "pixel_auc": 0.9825,
+            "dice": 0.4085,
+            "iou": 0.258,
+            "pixel_recall": 0.31938332851561574,
+            "save_epoch": 27
         }
     }
 }

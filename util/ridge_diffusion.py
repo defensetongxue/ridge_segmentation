@@ -158,7 +158,7 @@ def generate_point_sequence(points):
     
     return np.array(sequence)
 def get_distance(p0, p1):
-    return ((p0[0]-p1[0])**2 + (p0[1]-p1[1])**2)**0.5
+    return ((p0[0]-p1[0])**2 + (p0[1]-p1[1])**2)
 def get_similarity(img_tensor,p0,p1):
     return 1-((img_tensor[p0[1],p0[0]]-img_tensor[p1[1],p1[0]])**2)
 

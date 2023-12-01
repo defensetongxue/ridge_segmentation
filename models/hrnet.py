@@ -455,25 +455,36 @@ class HighResolutionNet(nn.Module):
         return x
 
     def init_weights(self, pretrained='',):
-        logger.info('=> init weights from normal distribution')
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.normal_(m.weight, std=0.001)
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+        self.load_pretrained(pretrained)   
+    def load_pretrained(self, pretrained):
+        print("load from "+pretrained)
         if os.path.isfile(pretrained):
             pretrained_dict = torch.load(pretrained)
-            print('=> loading pretrained model {}'.format(pretrained))
+            print('=> Loading pretrained model {}'.format(pretrained))
             model_dict = self.state_dict()
-            pretrained_dict = {k: v for k, v in pretrained_dict.items()
-                               if k in model_dict.keys()}
-            # for k, _ in pretrained_dict.items():
-            #    print(
-            #        '=> loading {} pretrained model {}'.format(k, pretrained))
-            model_dict.update(pretrained_dict)
-            self.load_state_dict(model_dict)
-        trunc_normal_(self.last_layer[-1].weight,std=0.02)
+
+            # Filter out mismatched keys
+            mismatched_keys = []
+            for k, v in pretrained_dict.items():
+                if k in model_dict:
+                    if pretrained_dict[k].shape == model_dict[k].shape:
+                        model_dict[k] = v
+                    else:
+                        mismatched_keys.append(k)
+
+            # Update the model with the matching keys
+            self.load_state_dict(model_dict, strict=False)
+
+            if mismatched_keys:
+                print("The following layers are skipped due to size mismatch:")
+                for key in mismatched_keys:
+                    print(f"- {key}")
 def get_seg_model(cfg, **kwargs):
     model = HighResolutionNet(cfg, **kwargs)
     model.init_weights(cfg['pretrained'])
