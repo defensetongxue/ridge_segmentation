@@ -7,7 +7,7 @@ from util import get_instance,visual_mask,visual_points
 import models
 from PIL import Image
 import torch.nn.functional as F
-from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.metrics import accuracy_score, roc_auc_score,recall_score
 import numpy as np
 # Parse arguments
 import time
@@ -104,5 +104,7 @@ with torch.no_grad():
         predict.append(pred)
 acc = accuracy_score(labels, predict)
 auc = roc_auc_score(labels, predict)
+recall=recall_score(labels,predict)
 print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
+print(f"Recall: {recall:.4f}")

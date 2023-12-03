@@ -6,7 +6,9 @@ from util import ridge_segmentataion_dataset as CustomDatset
 from util import ridge_finetone_val
 import models
 import os,time
+from PIL import Image
 from  util.metric import Metrics
+from torchvision.transforms import ToTensor,InterpolationMode,Resize
 import numpy as np
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
@@ -61,11 +63,16 @@ total_epoches = args.configs['train']['end_epoch']
 max_auc=0
 max_recall=0
 save_epoch=-1
+mask=Image.open('./mask.png').convert('L')
+mask =Resize((150,200),interpolation=InterpolationMode.NEAREST)(mask)
+mask=ToTensor()(mask)
+mask[mask>0]=1
+mask=mask.unsqueeze(0)
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
-    val_loss,metric = val_epoch(model, val_loader, criterion, device,metric)
+    val_loss,metric = val_epoch(model, val_loader, criterion, device,metric,mask)
     
     end_time = time.time()  # Record the end time of the epoch
     elapsed_time = end_time - start_time  # Calculate the elapsed time

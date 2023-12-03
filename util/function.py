@@ -37,28 +37,29 @@ def train_epoch(model, optimizer, train_loader, loss_function, device, lr_schedu
         optimizer.step()
 
         running_loss += loss.item()
-
+        break
     return running_loss / len(train_loader)
 
 
-def val_epoch(model, val_loader, loss_function, device, metric: Metrics):
+def val_epoch(model, val_loader, loss_function, device, metric: Metrics,mask):
     model.eval()
     running_loss = 0.0
     image_preds = []
     image_labels = []
 
     with torch.no_grad():
-        for inputs, targets, mask in val_loader:
+        for inputs, targets, gt in  val_loader:
             inputs = inputs.to(device)
-            mask = mask.to(device)
+            gt = gt.to(device)
             outputs = model(inputs)
-            loss = loss_function(outputs, mask)
+            loss = loss_function(outputs, gt)
             running_loss += loss.item()
 
             # Process pixel-level metrics
 
             # Store image-level predictions and labels
             ridge_mask = torch.sigmoid(outputs.detach().cpu())
+            ridge_mask= ridge_mask* mask
             ridge_mask = torch.where(ridge_mask > 0.5, 1, 0).flatten(1, -1)
             ridge_mask_sum = torch.sum(ridge_mask, dim=1)
             predict_label = torch.where(ridge_mask_sum > 0, 1, 0).tolist()
