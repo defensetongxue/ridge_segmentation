@@ -15,7 +15,7 @@ def get_config():
     # Model
     parser.add_argument('--patch_size', type=int, default=200,
                         help='Name of the model architecture to be used for training.')
-    parser.add_argument('--stride', type=int, default=50,
+    parser.add_argument('--stride', type=int, default=100,
                         help='Name of the model architecture to be used for training.')
     parser.add_argument('--ridge_seg_number', type=int, default=4,
                         help='Name of the model architecture to be used for training.')

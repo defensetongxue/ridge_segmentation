@@ -44,57 +44,22 @@ class Metrics:
         self.image_acc = 0
         self.image_auc = 0
 
-        # Pixel-level metrics
-        self.pixel_acc = 0
-        self.pixel_auc = 0
-        self.pixel_recall = 0
-        self.dice = 0
-        self.iou = 0
-        self.iter_num =0
-        self.pixel_auc_skip=0
     def update_image_metrics(self, image_preds, image_labels):
         # Update image-level metrics
         self.image_recall = calculate_recall(image_labels, image_preds)
         self.image_acc = accuracy_score(image_labels, image_preds)
         self.image_auc = roc_auc_score(image_labels, image_preds)
 
-    def update_pixel_metrics(self, pixel_preds, pixel_labels, bc):
-        # Update pixel-level metrics iteratively, accounting for batch size
-        self.iter_num += bc
-        self.pixel_acc += accuracy_score(pixel_labels, pixel_preds > 0.5) * bc
-        self.pixel_recall += calculate_recall(pixel_labels,pixel_preds > 0.5)* bc
-        if len(np.unique(pixel_labels)) > 1:
-            self.pixel_auc += roc_auc_score(pixel_labels, pixel_preds) * bc
-        else:
-            self.pixel_auc_skip+= bc
-        dice, iou = calculate_dice_iou(torch.tensor(pixel_preds > 0.5, dtype=torch.float32), torch.tensor(pixel_labels, dtype=torch.float32))
-        self.dice += dice * bc
-        self.iou += iou * bc
-
-    # Call this method at the end of the validation loop
-    def finalize_metrics(self):
-        if self.iter_num > 0:
-            self.pixel_acc /= self.iter_num
-            self.pixel_auc /= (self.iter_num-self.pixel_auc_skip)
-            self.dice /= self.iter_num
-            self.iou /= self.iter_num
-            self.pixel_recall/=self.iter_num
+    
     def __str__(self):
         return (f"[{self.header}] "
-                f"Image - Acc: {self.image_acc:.4f}, AUC: {self.image_auc:.4f}, Recall: {self.image_recall:.4f}\n"
-                f"[{self.header}] "
-                f"Pixel - Acc: {self.pixel_acc:.4f}, AUC: {self.pixel_auc:.4f}, Dice: {self.dice:.4f}, IOU: {self.iou:.4f}, Recall: {self.pixel_recall:.4f}")
+                f"Image - Acc: {self.image_acc:.4f}, AUC: {self.image_auc:.4f}, Recall: {self.image_recall:.4f}")
 
     def _store(self, key, split_name, save_epoch, save_path='./record.json'):
         res = {
             "image_accuracy": round(self.image_acc, 4),
             "image_auc": round(self.image_auc, 4),
             "image_recall": round(self.image_recall, 4),
-            "pixel_accuracy": round(self.pixel_acc, 4),
-            "pixel_auc": round(self.pixel_auc, 4),
-            "dice": round(self.dice, 4),
-            "iou": round(self.iou, 4),
-            "pixel_recall":self.pixel_recall,
             "save_epoch": save_epoch
         }
 

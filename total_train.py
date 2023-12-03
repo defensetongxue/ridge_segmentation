@@ -24,7 +24,7 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
-criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
+criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=3.0)
 model.load_state_dict(
     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
 )
@@ -35,7 +35,7 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='train',postive_cnt=0)
+train_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='train',postive_cnt=1e6)
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e6)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e6)
 # Create the data loaders

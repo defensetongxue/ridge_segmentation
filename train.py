@@ -39,20 +39,20 @@ last_epoch = args.configs['train']['begin_epoch']
 # Load the datasets
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
 # val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
-val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val')
-test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test')
+val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
+test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
                           batch_size=args.configs['train']['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
                         # batch_size=args.configs['train']['batch_size'],
-                        # batch_size=24,
-                        batch_size=4,
+                        batch_size=24,
+                        # batch_size=4,
                         shuffle=False, num_workers=args.configs['num_works'])
 test_loader = DataLoader(val_dataset,
                         # batch_size=args.configs['train']['batch_size'],
-                        batch_size=4,
+                        batch_size=24,
                         shuffle=False, num_workers=args.configs['num_works'])
 metric=Metrics("Main")
 print("There is  patch size".format(args.configs['train']['batch_size']))

@@ -56,10 +56,6 @@ def val_epoch(model, val_loader, loss_function, device, metric: Metrics):
             running_loss += loss.item()
 
             # Process pixel-level metrics
-            outputs = torch.sigmoid(outputs.cpu())
-            outputs_flatten=outputs.view(-1)
-            targets_flat = mask.cpu().view(-1)
-            metric.update_pixel_metrics(outputs_flatten.numpy(), targets_flat.numpy(),mask.shape[0])
 
             # Store image-level predictions and labels
             ridge_mask = torch.where(outputs > 0.5, 1, 0).flatten(1, -1)
@@ -69,9 +65,7 @@ def val_epoch(model, val_loader, loss_function, device, metric: Metrics):
             image_labels.extend(targets.tolist())
     image_preds=np.array(image_preds)
     image_labels=np.array(image_labels)
-    # Update image-level metrics after processing all batches
     metric.update_image_metrics(image_preds, image_labels)
-    metric.finalize_metrics()
     return running_loss / len(val_loader), metric
 
 def get_instance(module, class_name, *args, **kwargs):

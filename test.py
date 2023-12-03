@@ -51,8 +51,17 @@ labels=[]
 mask=Image.open('./mask.png').resize((800,600),resample=Image.Resampling.BILINEAR)
 mask=np.array(mask)
 mask[mask>0]=1
+new_split_list=[]
+for image_name  in split_list:
+    if data_dict[image_name]['stage']>0:
+        new_split_list.append(image_name)
+    else:
+        if data_dict[image_name]["suspicious"]:
+            continue
+        new_split_list.append(image_name)
+
 with torch.no_grad():
-    for image_name in split_list:
+    for image_name in new_split_list:
         data=data_dict[image_name]
         img = Image.open(data['enhanced_path'])
         img_tensor = img_transforms(img)
@@ -80,7 +89,7 @@ with torch.no_grad():
                 visual_points(data['image_path'],output_img,
                               save_path= os.path.join(visual_dir,'0',image_name[:-4]+'_point.jpg'))
             else:
-
+                ft=Image.open(data['ridge_diffusion_path']).convert(output_img.shape[1],output_img.shape[0])
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name))
 
