@@ -72,8 +72,9 @@ with torch.no_grad():
         
         output_img=torch.sigmoid(output_img)
         output_img=F.interpolate(output_img,(600,800), mode='nearest')
-        output_img=torch.where(output_img>0.5,1,0).squeeze()
         output_img=output_img*mask
+        
+        output_img=torch.where(output_img>0.5,1,0).squeeze()
         if 'ridge' in data:
             tar=1
         else:
