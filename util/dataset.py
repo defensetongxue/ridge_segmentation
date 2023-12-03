@@ -6,8 +6,8 @@ from .tools import Fix_RandomRotation
 import json
 from PIL import Image,ImageOps
 import numpy as np
-IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
-IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
+# IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
+# IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 class ridge_segmentataion_dataset(Dataset):
     def __init__(self, data_path, split, split_name):
         with open(os.path.join(data_path, 'ridge_seg', 'split', f'{split_name}.json'), 'r') as f:
@@ -21,6 +21,7 @@ class ridge_segmentataion_dataset(Dataset):
             transforms.RandomVerticalFlip(p=0.5),
             Fix_RandomRotation(),
         ])
+        self.mask_resize=transforms.Resize((50,50), interpolation=transforms.InterpolationMode.NEAREST)
         self.img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -35,6 +36,7 @@ class ridge_segmentataion_dataset(Dataset):
         img = Image.open(data['image_path']).convert('RGB')
         if data['mask_path']:
             gt = Image.open(data['mask_path'])
+            gt=self.mask_resize(gt)
         else:
             raise
             patch_size = data['patch_size']
@@ -136,7 +138,7 @@ class ridge_finetone_val(Dataset):
                 new.append(image_name)
                 cnt-=1
         self.split_list=new
-        self.mask_resize=transforms.Resize((600,800))
+        self.mask_resize=transforms.Resize((150,200))
         self.img_transforms=transforms.Compose([
             transforms.Resize((600,800)),
             transforms.ToTensor(),
@@ -157,7 +159,7 @@ class ridge_finetone_val(Dataset):
             mask= transforms.ToTensor()(mask)
             mask[mask!=0]=1.
         else:
-            mask=torch.zeros((1,600,800))
+            mask=torch.zeros((1,150,200))
         if 'ridge' not in data:
             label=0
         else:

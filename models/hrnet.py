@@ -451,7 +451,6 @@ class HighResolutionNet(nn.Module):
         x = torch.cat([x[0], x1, x2, x3], 1)
 
         x = self.last_layer(x)
-        x=F.interpolate(x, size=(x0_h*4, x0_w*4), mode='bilinear', align_corners=True)
         return x
 
     def init_weights(self, pretrained='',):

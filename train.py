@@ -26,10 +26,6 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
 criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
-if os.path.isfile(args.from_checkpoint):
-    print(f"loadding the exit checkpoints {args.from_checkpoint}")
-    model.load_state_dict(
-    torch.load(args.from_checkpoint))
 model.train()
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
@@ -38,7 +34,6 @@ last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
-# val_dataset=CustomDatset(args.data_path,'val',split_name=args.split_name)
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders
@@ -46,16 +41,13 @@ train_loader = DataLoader(train_dataset,
                           batch_size=args.configs['train']['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
-                        # batch_size=args.configs['train']['batch_size'],
                         batch_size=24,
-                        # batch_size=4,
                         shuffle=False, num_workers=args.configs['num_works'])
 test_loader = DataLoader(val_dataset,
-                        # batch_size=args.configs['train']['batch_size'],
                         batch_size=24,
                         shuffle=False, num_workers=args.configs['num_works'])
 metric=Metrics("Main")
-print("There is  patch size".format(args.configs['train']['batch_size']))
+print("There is {} patch size".format(args.configs['train']['batch_size']))
 print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")
 # Set up the device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

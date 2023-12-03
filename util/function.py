@@ -58,7 +58,8 @@ def val_epoch(model, val_loader, loss_function, device, metric: Metrics):
             # Process pixel-level metrics
 
             # Store image-level predictions and labels
-            ridge_mask = torch.where(outputs > 0.5, 1, 0).flatten(1, -1)
+            ridge_mask = torch.sigmoid(outputs.detach().cpu())
+            ridge_mask = torch.where(ridge_mask > 0.5, 1, 0).flatten(1, -1)
             ridge_mask_sum = torch.sum(ridge_mask, dim=1)
             predict_label = torch.where(ridge_mask_sum > 0, 1, 0).tolist()
             image_preds.extend(predict_label)

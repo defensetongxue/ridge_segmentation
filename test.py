@@ -67,11 +67,12 @@ with torch.no_grad():
         img_tensor = img_transforms(img)
         
         img=img_tensor.unsqueeze(0).to(device)
-        output_img = model(img).squeeze().cpu()
+        output_img = model(img).cpu()
         # Resize the output to the original image size
         
         output_img=torch.sigmoid(output_img)
-        output_img=torch.where(output_img>0.5,1,0)
+        output_img=F.interpolate(output_img,(600,800), mode='nearest')
+        output_img=torch.where(output_img>0.5,1,0).squeeze()
         output_img=output_img*mask
         if 'ridge' in data:
             tar=1
@@ -89,12 +90,16 @@ with torch.no_grad():
                 visual_points(data['image_path'],output_img,
                               save_path= os.path.join(visual_dir,'0',image_name[:-4]+'_point.jpg'))
             else:
-                ft=Image.open(data['ridge_diffusion_path']).convert(output_img.shape[1],output_img.shape[0])
+                gt=Image.open(data['ridge_diffusion_path']).convert('L')
+                gt=transforms.Resize((600,800))(gt)
+                gt=np.array(gt)/255
+                visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
+                            save_path=os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name))
 
-                visual_points(data['image_path'],output_img,
-                              save_path= os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
+                # visual_points(data['image_path'],output_img,
+                #               save_path= os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
         labels.append(tar)
         predict.append(pred)
 acc = accuracy_score(labels, predict)

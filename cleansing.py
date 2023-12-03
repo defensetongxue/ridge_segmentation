@@ -6,7 +6,7 @@ from PIL import Image
 import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
-def generate_segmentation_mask(data_path, patch_size, stride):
+def generate_segmentation_mask(data_path, patch_size, stride_val):
     os.makedirs(os.path.join(data_path,'ridge_seg'), exist_ok=True)
     # Clean up the directories
     os.makedirs(os.path.join(data_path,'ridge_seg','images'), exist_ok=True)
@@ -19,24 +19,29 @@ def generate_segmentation_mask(data_path, patch_size, stride):
     
     annotate = {}
     cnt = 0
-
     for image_name in data_list:
         cnt += 1
         if cnt % 100 and False: # logger
             print(f"Finished processing: {cnt} images")
+            
         
         data = data_list[image_name]
         if not 'ridge' in data:
-            continue
-        
+            if data["suspicious"]:
+                continue
+            else:
+                stride=stride_val*2
+                mask=Image.new('L',(800,600))
+        else:
+            stride= stride_val
+            mask = Image.open(data['ridge_diffusion_path'])
+            mask=mask.resize((800,600),resample=Image.Resampling.NEAREST)
+        mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
+        mask_tensor[mask_tensor != 0] = 1
         
         img = Image.open(data['enhanced_path']).convert("RGB")
         img=img.resize((800,600),resample=Image.Resampling.BILINEAR)
         img_tensor = transforms.ToTensor()(img)
-        mask = Image.open(data['ridge_diffusion_path'])
-        mask=mask.resize((800,600),resample=Image.Resampling.NEAREST)
-        mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
-        mask_tensor[mask_tensor != 0] = 1
         
         # Calculate padding
         image_size = img_tensor.shape[-2:]
