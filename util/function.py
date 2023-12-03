@@ -37,7 +37,6 @@ def train_epoch(model, optimizer, train_loader, loss_function, device, lr_schedu
         optimizer.step()
 
         running_loss += loss.item()
-        break
     return running_loss / len(train_loader)
 
 

@@ -59,7 +59,8 @@ for image_name  in split_list:
         if data_dict[image_name]["suspicious"]:
             continue
         new_split_list.append(image_name)
-
+val_list_postive=[]
+val_list_negtive=[]
 with torch.no_grad():
     for image_name in new_split_list:
         data=data_dict[image_name]
@@ -71,14 +72,18 @@ with torch.no_grad():
         # Resize the output to the original image size
         
         output_img=torch.sigmoid(output_img)
+        max_val=float(torch.max(output_img))
+        
         output_img=F.interpolate(output_img,(600,800), mode='nearest')
         output_img=output_img*mask
         
         output_img=torch.where(output_img>0.5,1,0).squeeze()
         if 'ridge' in data:
             tar=1
+            val_list_postive.append(max_val)
         else:
             tar=0
+            val_list_negtive.append(max_val)
         if (torch.sum(output_img)>=1):
             pred=1
         else:
@@ -93,7 +98,8 @@ with torch.no_grad():
             else:
                 gt=Image.open(data['ridge_diffusion_path']).convert('L')
                 gt=transforms.Resize((600,800))(gt)
-                gt=np.array(gt)/255
+                gt=np.array(gt)
+                gt[gt>0]=1
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
@@ -109,3 +115,25 @@ recall=recall_score(labels,predict)
 print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
+import matplotlib.pyplot as plt
+# Bin data with width 0.2
+bins = np.arange(0, 1.01, 0.05)  # Bins from 0 to 1 with step size 0.2
+positive_hist, _ = np.histogram(val_list_postive, bins=bins, density=True)
+negative_hist, _ = np.histogram(val_list_negtive, bins=bins, density=True)
+
+# Calculate proportions for each bin
+positive_hist *= 0.05  # width of bins
+negative_hist *= 0.05
+
+# Plot with overlapping bars
+plt.bar(bins[:-1], positive_hist, width=0.05, align='center', alpha=0.5, color='blue', label='Positive')
+plt.bar(bins[:-1], negative_hist, width=0.05, align='center', alpha=0.5, color='orange', label='Negative')
+plt.xlabel('Value Range')
+plt.ylabel('Proportion')
+plt.title('Value Distribution')
+plt.xticks(bins)
+plt.legend()
+
+# Save the figure
+plt.savefig('./save.png')
+plt.show()
