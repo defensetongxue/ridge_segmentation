@@ -5,7 +5,7 @@ def get_config():
     # cleansing
     parser.add_argument('--data_path', type=str, default='../autodl-tmp/dataset_ROP',
                         help='Path to the target folder to store the processed datasets.')
-    parser.add_argument('--generate_ridge_diffusion', type=bool, default=True,
+    parser.add_argument('--generate_ridge_diffusion', type=bool, default=False,
                         help='if generate the ridge cooridinate from json src.')
     
     # split

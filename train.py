@@ -97,7 +97,7 @@ for epoch in range(last_epoch, total_epoches):
 model.load_state_dict(
     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
 )
-test_loss,metric = val_epoch(model, test_loader, criterion, device,metric)
+test_loss,metric = val_epoch(model, test_loader, criterion, device,metric,mask)
 print(metric)
 key=f'{str(os.path.basename(args.cfg)[:-5])}'
 metric._store(key,args.split_name,save_epoch)

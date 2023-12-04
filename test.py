@@ -48,9 +48,7 @@ img_transforms=transforms.Compose([
 begin=time.time()
 predict=[]
 labels=[]
-mask=Image.open('./mask.png').resize((800,600),resample=Image.Resampling.BILINEAR)
-mask=np.array(mask)
-mask[mask>0]=1
+
 new_split_list=[]
 for image_name  in split_list:
     if data_dict[image_name]['stage']>0:
@@ -61,8 +59,13 @@ for image_name  in split_list:
         new_split_list.append(image_name)
 val_list_postive=[]
 val_list_negtive=[]
+val_list=[]
 with torch.no_grad():
     for image_name in new_split_list:
+        mask=Image.open(data_dict[image_name]['mask_path']).resize((800,600),resample=Image.Resampling.BILINEAR)
+        mask=np.array(mask)
+        mask[mask>0]=1
+    
         data=data_dict[image_name]
         img = Image.open(data['enhanced_path'])
         img_tensor = img_transforms(img)
@@ -73,7 +76,7 @@ with torch.no_grad():
         
         output_img=torch.sigmoid(output_img)
         max_val=float(torch.max(output_img))
-        
+        val_list.append(max_val)
         output_img=F.interpolate(output_img,(600,800), mode='nearest')
         output_img=output_img*mask
         
@@ -100,7 +103,7 @@ with torch.no_grad():
                 gt=transforms.Resize((600,800))(gt)
                 gt=np.array(gt)
                 gt[gt>0]=1
-                visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
+                visual_mask(data['image_path'],gt,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name))
@@ -109,6 +112,7 @@ with torch.no_grad():
                 #               save_path= os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
         labels.append(tar)
         predict.append(pred)
+
 acc = accuracy_score(labels, predict)
 auc = roc_auc_score(labels, predict)
 recall=recall_score(labels,predict)
@@ -136,4 +140,30 @@ plt.legend()
 
 # Save the figure
 plt.savefig('./save.png')
-plt.show()
+val_list=np.array(val_list)
+acc_list=[]
+auc_list=[]
+recall_list=[]
+
+for judge_val in np.arange(0.4, 0.51, 0.01):
+    pred_label=val_list>judge_val
+    acc_list.append(accuracy_score(labels,pred_label))
+    auc_list.append(roc_auc_score(labels,pred_label))
+    recall_list.append(recall_score(labels,pred_label))
+    
+# Create range for x-axis
+x_range = np.arange(0.4, 0.51, 0.01)
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(x_range, acc_list, label='Accuracy', color='blue')
+plt.plot(x_range, auc_list, label='AUC', color='green')
+plt.plot(x_range, recall_list, label='Recall', color='red')
+
+plt.xlabel('Judgement Value')
+plt.ylabel('Score')
+plt.title('Metric Scores at Different Judgement Values')
+plt.legend()
+plt.grid(True)
+plt.savefig('./save_line.png')
+
