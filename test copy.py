@@ -49,11 +49,20 @@ begin=time.time()
 predict=[]
 labels=[]
 
+new_split_list=[]
+for image_name  in split_list:
+    if data_dict[image_name]['stage']>0:
+        new_split_list.append(image_name)
+    else:
+        if data_dict[image_name]["suspicious"]:
+            continue
+        new_split_list.append(image_name)
+        
 val_list_postive=[]
 val_list_negtive=[]
 val_list=[]
 with torch.no_grad():
-    for image_name in split_list:
+    for image_name in new_split_list:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((800,600),resample=Image.Resampling.BILINEAR)
         mask=np.array(mask)
         mask[mask>0]=1
@@ -73,7 +82,7 @@ with torch.no_grad():
         output_img=output_img*mask
         
         output_img=torch.where(output_img>0.5,1,0).squeeze()
-        if data['stage']>0:
+        if 'ridge' in data:
             tar=1
             val_list_postive.append(max_val)
         else:
@@ -99,9 +108,6 @@ with torch.no_grad():
                             save_path=os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name))
-
-                # visual_points(data['image_path'],output_img,
-                #               save_path= os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
         labels.append(tar)
         predict.append(pred)
 
@@ -137,14 +143,14 @@ acc_list=[]
 auc_list=[]
 recall_list=[]
 
-for judge_val in np.arange(0.3, 0.51, 0.01):
+for judge_val in np.arange(0.4, 0.51, 0.01):
     pred_label=val_list>judge_val
     acc_list.append(accuracy_score(labels,pred_label))
     auc_list.append(roc_auc_score(labels,pred_label))
     recall_list.append(recall_score(labels,pred_label))
     
 # Create range for x-axis
-x_range = np.arange(0.3, 0.51, 0.01)
+x_range = np.arange(0.4, 0.51, 0.01)
 
 # Plotting
 plt.figure(figsize=(10, 6))

@@ -26,13 +26,15 @@ def generate_segmentation_mask(data_path, patch_size, stride_val):
             
         
         data = data_list[image_name]
-        if not 'ridge' in data:
+        if data['stage']==0:
             if data["suspicious"]:
                 continue
             else:
                 stride=stride_val*2
                 mask=Image.new('L',(800,600))
         else:
+            if 'ridge' not  in data:
+                continue # missing ridge annotation
             stride= stride_val
             mask = Image.open(data['ridge_diffusion_path'])
             mask=mask.resize((800,600),resample=Image.Resampling.NEAREST)

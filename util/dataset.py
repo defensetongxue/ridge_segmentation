@@ -160,7 +160,7 @@ class ridge_finetone_val(Dataset):
             mask[mask!=0]=1.
         else:
             mask=torch.zeros((1,150,200))
-        if 'ridge' not in data:
+        if data['stage']>0:
             label=0
         else:
             label=1
