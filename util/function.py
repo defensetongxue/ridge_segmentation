@@ -47,12 +47,9 @@ def val_epoch(model, val_loader, loss_function, device, metric: Metrics,mask):
     image_labels = []
 
     with torch.no_grad():
-        for inputs, targets, gt in  val_loader:
+        for inputs, targets, image_names in  val_loader:
             inputs = inputs.to(device)
-            gt = gt.to(device)
             outputs = model(inputs)
-            loss = loss_function(outputs, gt)
-            running_loss += loss.item()
 
             # Process pixel-level metrics
 

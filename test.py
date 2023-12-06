@@ -79,7 +79,7 @@ with torch.no_grad():
         else:
             tar=0
             val_list_negtive.append(max_val)
-        if (torch.sum(output_img)>=1):
+        if (torch.sum(output_img)>=20):
             pred=1
         else:
             pred=0

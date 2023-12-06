@@ -43,10 +43,10 @@ train_loader = DataLoader(train_dataset,
                           batch_size=args.configs['train']['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
-                        batch_size=24,
+                        batch_size=12,
                         shuffle=False, num_workers=args.configs['num_works'])
 test_loader = DataLoader(val_dataset,
-                        batch_size=24,
+                        batch_size=12,
                         shuffle=False, num_workers=args.configs['num_works'])
 metric=Metrics("Main")
 print("There is {} patch size".format(args.configs['train']['batch_size']))
@@ -64,12 +64,13 @@ max_auc=0
 max_recall=0
 save_epoch=-1
 mask=Image.open('./mask.png').convert('L')
-mask =Resize((150,200),interpolation=InterpolationMode.NEAREST)(mask)
+mask =Resize((300,400),interpolation=InterpolationMode.NEAREST)(mask)
 mask=ToTensor()(mask)
 mask[mask>0]=1
 mask=mask.unsqueeze(0)
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):
+    
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
     val_loss,metric = val_epoch(model, val_loader, criterion, device,metric,mask)

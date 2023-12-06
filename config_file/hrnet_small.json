@@ -3,7 +3,7 @@
     "save_name":"hrnet.pth",
     "model": {
         "loss_func": "BCELoss",
-        "loss_weight":5,
+        "loss_weight":2,
         "name": "hrnet",
         "pretrained": "./pretrained/hrnet.pth",
         "extra": {
@@ -77,9 +77,9 @@
         "epochs":100
     },
     "train": {
-        "batch_size": 120,
+        "batch_size": 64,
         "begin_epoch": 0,
-        "end_epoch": 100,
+        "end_epoch": 50,
         "early_stop": 30,
         "optimizer": "adamw",
         "lr": 0.001,

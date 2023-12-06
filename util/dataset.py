@@ -21,7 +21,7 @@ class ridge_segmentataion_dataset(Dataset):
             transforms.RandomVerticalFlip(p=0.5),
             Fix_RandomRotation(),
         ])
-        self.mask_resize=transforms.Resize((50,50), interpolation=transforms.InterpolationMode.NEAREST)
+        self.mask_resize=transforms.Resize((100,100), interpolation=transforms.InterpolationMode.NEAREST)
         self.img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -125,22 +125,9 @@ class ridge_finetone_val(Dataset):
         with open(os.path.join(data_path,'split',f'{split_name}.json'),'r') as f:
             self.split_list=json.load(f)[split]
             
-        new=[]
-        cnt=postive_cnt
-        for image_name  in self.split_list:
-            if self.data_dict[image_name]['stage']>0:
-                new.append(image_name)
-            else:
-                if cnt<=0:
-                    continue
-                if self.data_dict[image_name]["suspicious"]:
-                    continue
-                new.append(image_name)
-                cnt-=1
-        self.split_list=new
-        self.mask_resize=transforms.Resize((150,200))
+        # self.mask_resize=transforms.Resize((0,200))
         self.img_transforms=transforms.Compose([
-            transforms.Resize((600,800)),
+            # transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334]
@@ -153,19 +140,10 @@ class ridge_finetone_val(Dataset):
         image_name=self.split_list[idx]
         data=self.data_dict[image_name]
         img = Image.open(data['enhanced_path']).convert('RGB')
-        if 'ridge_diffusion_path' in data:
-            mask = Image.open(data['ridge_diffusion_path']).convert('L')
-            mask=self.mask_resize(mask)
-            mask= transforms.ToTensor()(mask)
-            mask[mask!=0]=1.
-        else:
-            mask=torch.zeros((1,150,200))
         if data['stage']>0:
-            label=0
-        else:
             label=1
+        else:
+            label=0
         img=self.img_transforms(img)
-        if  self.split == 'train':
-            return img,mask,label
-        return img,label,mask
+        return img,label,image_name
     
