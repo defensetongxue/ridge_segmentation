@@ -7,6 +7,8 @@ def get_config():
                         help='Path to the target folder to store the processed datasets.')
     parser.add_argument('--generate_ridge_diffusion', type=bool, default=False,
                         help='if generate the ridge cooridinate from json src.')
+    parser.add_argument('--generate_mask', type=bool, default=False,
+                        help='if generate the ridge cooridinate from json src.')
     
     # split
     parser.add_argument('--split_name', type=str, default='clr_1',
@@ -15,7 +17,7 @@ def get_config():
     # Model
     parser.add_argument('--patch_size', type=int, default=400,
                         help='Name of the model architecture to be used for training.')
-    parser.add_argument('--stride', type=int, default=200,
+    parser.add_argument('--stride', type=int, default=100,
                         help='Name of the model architecture to be used for training.')
     parser.add_argument('--ridge_seg_number', type=int, default=4,
                         help='Name of the model architecture to be used for training.')
