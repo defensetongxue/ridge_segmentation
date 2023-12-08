@@ -43,10 +43,10 @@ train_loader = DataLoader(train_dataset,
                           batch_size=args.configs['train']['batch_size'],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
-                        batch_size=12,
+                        batch_size=args.configs['train']['test_bc'],
                         shuffle=False, num_workers=args.configs['num_works'])
 test_loader = DataLoader(test_dataset,
-                        batch_size=12,
+                        batch_size=args.configs['train']['test_bc'],
                         shuffle=False, num_workers=args.configs['num_works'])
 metric=Metrics("Main")
 print("There is {} patch size".format(args.configs['train']['batch_size']))

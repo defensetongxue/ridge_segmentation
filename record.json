@@ -1,52 +1,25 @@
-{
-    "hrnet_small": {
-        "1": {
-            "image_accuracy": 0.9357,
-            "image_auc": 0.9273,
-            "image_recall": 0.91,
-            "save_epoch": 22
-        },
-        "2": {
-            "accuracy": 0.9079,
-            "auc": 0.8976,
-            "recall": 0.8763
-        },
-        "3": {
-            "accuracy": 0.956,
-            "auc": 0.9504,
-            "recall": 0.9401
-        },
-        "4": {
-            "accuracy": 0.9381,
-            "auc": 0.9362,
-            "recall": 0.9331
-        },
-        "clr_1": {
-            "image_accuracy": 0.9045,
-            "image_auc": 0.9203,
-            "image_recall": 0.9507,
-            "save_epoch": 40
-        },
-        "clr_2": {
-            "image_accuracy": 0.9323,
-            "image_auc": 0.9508,
-            "image_recall": 0.9836,
-            "save_epoch": 41
-        },
-        "clr_3": {
-            "image_accuracy": 0.922,
-            "image_auc": 0.9429,
-            "image_recall": 0.9773,
-            "save_epoch": 49
-        },
-        "clr_4": {
-            "image_accuracy": 0.9095,
-            "image_auc": 0.9265,
-            "image_recall": 0.9597,
-            "save_epoch": 22
-        }
-    }
-}
-9136.
-9321
-9643
+
+9136.     "accuracy": 0.9498,
+9321          "auc": 0.9353,
+9643        "recall": 0.9088
+
+=> Loading pretrained model ./pretrained/hrnet.pth
+load the checkpoint in ./checkpoints/clr_4_hrnet.pth
+Accuracy: 0.9479
+AUC: 0.9368
+Recall: 0.9188
+
+load the checkpoint in ./checkpoints/clr_2_hrnet.pth
+Accuracy: 0.8931
+AUC: 0.9056
+Recall: 0.9301
+
+oad the checkpoint in ./checkpoints/clr_3_hrnet.pth
+Accuracy: 0.9273
+AUC: 0.9464
+Recall: 0.9803
+
+load the checkpoint in ./checkpoints/clr_1_hrnet.pth
+Accuracy: 0.9309
+AUC: 0.9397
+Recall: 0.9536
