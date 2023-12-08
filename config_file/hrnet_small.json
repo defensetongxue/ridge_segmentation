@@ -79,7 +79,7 @@
     "train": {
         "batch_size": 64,
         "begin_epoch": 0,
-        "end_epoch": 50,
+        "end_epoch": 0,
         "early_stop": 30,
         "optimizer": "adamw",
         "lr": 0.001,

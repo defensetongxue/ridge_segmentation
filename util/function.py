@@ -83,10 +83,28 @@ def get_optimizer(cfg, model):
             nesterov=cfg['train']['nesterov']
         )
     elif cfg['train']['optimizer'] == 'adamw':
-        optimizer = optim.AdamW(
-            filter(lambda p: p.requires_grad, model.parameters()),
-            lr=cfg['train']['lr'], weight_decay=cfg['train']['wd']
-        )
+        no_decay = set(model.no_weight_decay())
+        print(no_decay)
+        # Separate model parameters into those that will and won't have weight decay applied
+        decay_params = []
+        no_decay_params = []
+        for name, param in model.named_parameters():
+            # print(name)
+            if param.requires_grad:
+                if name.split('.')[0] in no_decay:
+                    print(name)
+                    no_decay_params.append(param)
+                else:
+                    decay_params.append(param)
+        # Create the optimizer, specifying the weight decay only for the decay_params group
+        optimizer = optim.AdamW([
+            {'params': no_decay_params, 'weight_decay': 0.0},  # No weight decay
+            {'params': decay_params, 'weight_decay': cfg['train']['wd']}  # Apply weight decay
+        ], lr=cfg['train']['lr'])
+        # optimizer = optim.AdamW(
+        #     filter(lambda p: p.requires_grad, model.parameters()),
+        #     lr=cfg['train']['lr'], weight_decay=cfg['train']['wd']
+        # )
     elif cfg['train']['optimizer'] == 'rmsprop':
         optimizer = optim.RMSprop(
             filter(lambda p: p.requires_grad, model.parameters()),

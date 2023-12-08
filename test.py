@@ -40,7 +40,7 @@ with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
-    transforms.Resize((600,800)),
+    # transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=[0.4623, 0.3856, 0.2822],
@@ -72,31 +72,32 @@ with torch.no_grad():
         output_img=F.interpolate(output_img,(600,800), mode='nearest')
         output_img=output_img*mask
         
-        output_img=torch.where(output_img>0.5,1,0).squeeze()
+        output_bin=torch.where(output_img>0.5,1,0).squeeze()
         if data['stage']>0:
             tar=1
             val_list_postive.append(max_val)
         else:
             tar=0
             val_list_negtive.append(max_val)
-        if (torch.sum(output_img)>=20):
+        if (torch.sum(output_bin)>=50):
             pred=1
         else:
             pred=0
         if pred!=tar:
+            output_img=output_img.squeeze()
             if tar==0:
 
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),save_path=os.path.join(visual_dir,'0',image_name))
 
-                visual_points(data['image_path'],output_img,
-                              save_path= os.path.join(visual_dir,'0',image_name[:-4]+'_point.jpg'))
+                # visual_points(data['image_path'],output_img,
+                #               save_path= os.path.join(visual_dir,'0',image_name[:-4]+'_point.jpg'))
             else:
-                gt=Image.open(data['ridge_diffusion_path']).convert('L')
-                gt=transforms.Resize((600,800))(gt)
-                gt=np.array(gt)
-                gt[gt>0]=1
-                visual_mask(data['image_path'],gt,str(int(torch.sum(output_img))),
-                            save_path=os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
+                # gt=Image.open(data['ridge_diffusion_path']).convert('L')
+                # gt=transforms.Resize((600,800))(gt)
+                # gt=np.array(gt)
+                # gt[gt>0]=1
+                # visual_mask(data['image_path'],gt,str(int(torch.sum(output_img))),
+                #             save_path=os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
                 visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
                             save_path=os.path.join(visual_dir,'1',image_name))
 
@@ -111,51 +112,51 @@ recall=recall_score(labels,predict)
 print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
-import matplotlib.pyplot as plt
-# Bin data with width 0.2
-bins = np.arange(0, 1.01, 0.05)  # Bins from 0 to 1 with step size 0.2
-positive_hist, _ = np.histogram(val_list_postive, bins=bins, density=True)
-negative_hist, _ = np.histogram(val_list_negtive, bins=bins, density=True)
+# import matplotlib.pyplot as plt
+# # Bin data with width 0.2
+# bins = np.arange(0, 1.01, 0.05)  # Bins from 0 to 1 with step size 0.2
+# positive_hist, _ = np.histogram(val_list_postive, bins=bins, density=True)
+# negative_hist, _ = np.histogram(val_list_negtive, bins=bins, density=True)
 
-# Calculate proportions for each bin
-positive_hist *= 0.05  # width of bins
-negative_hist *= 0.05
+# # Calculate proportions for each bin
+# positive_hist *= 0.05  # width of bins
+# negative_hist *= 0.05
 
-# Plot with overlapping bars
-plt.bar(bins[:-1], positive_hist, width=0.05, align='center', alpha=0.5, color='blue', label='Positive')
-plt.bar(bins[:-1], negative_hist, width=0.05, align='center', alpha=0.5, color='orange', label='Negative')
-plt.xlabel('Value Range')
-plt.ylabel('Proportion')
-plt.title('Value Distribution')
-plt.xticks(bins)
-plt.legend()
+# # Plot with overlapping bars
+# plt.bar(bins[:-1], positive_hist, width=0.05, align='center', alpha=0.5, color='blue', label='Positive')
+# plt.bar(bins[:-1], negative_hist, width=0.05, align='center', alpha=0.5, color='orange', label='Negative')
+# plt.xlabel('Value Range')
+# plt.ylabel('Proportion')
+# plt.title('Value Distribution')
+# plt.xticks(bins)
+# plt.legend()
 
-# Save the figure
-plt.savefig('./save.png')
-val_list=np.array(val_list)
-acc_list=[]
-auc_list=[]
-recall_list=[]
+# # Save the figure
+# plt.savefig('./save.png')
+# val_list=np.array(val_list)
+# acc_list=[]
+# auc_list=[]
+# recall_list=[]
 
-for judge_val in np.arange(0.3, 0.51, 0.01):
-    pred_label=val_list>judge_val
-    acc_list.append(accuracy_score(labels,pred_label))
-    auc_list.append(roc_auc_score(labels,pred_label))
-    recall_list.append(recall_score(labels,pred_label))
+# for judge_val in np.arange(0.3, 0.51, 0.01):
+#     pred_label=val_list>judge_val
+#     acc_list.append(accuracy_score(labels,pred_label))
+#     auc_list.append(roc_auc_score(labels,pred_label))
+#     recall_list.append(recall_score(labels,pred_label))
     
-# Create range for x-axis
-x_range = np.arange(0.3, 0.51, 0.01)
+# # Create range for x-axis
+# x_range = np.arange(0.3, 0.51, 0.01)
 
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(x_range, acc_list, label='Accuracy', color='blue')
-plt.plot(x_range, auc_list, label='AUC', color='green')
-plt.plot(x_range, recall_list, label='Recall', color='red')
+# # Plotting
+# plt.figure(figsize=(10, 6))
+# plt.plot(x_range, acc_list, label='Accuracy', color='blue')
+# plt.plot(x_range, auc_list, label='AUC', color='green')
+# plt.plot(x_range, recall_list, label='Recall', color='red')
 
-plt.xlabel('Judgement Value')
-plt.ylabel('Score')
-plt.title('Metric Scores at Different Judgement Values')
-plt.legend()
-plt.grid(True)
-plt.savefig('./save_line.png')
+# plt.xlabel('Judgement Value')
+# plt.ylabel('Score')
+# plt.title('Metric Scores at Different Judgement Values')
+# plt.legend()
+# plt.grid(True)
+# plt.savefig('./save_line.png')
 

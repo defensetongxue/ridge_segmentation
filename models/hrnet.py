@@ -460,7 +460,11 @@ class HighResolutionNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-        self.load_pretrained(pretrained)   
+        self.load_pretrained(pretrained) 
+          
+    def no_weight_decay(self):
+        return ["last_layer"]
+    
     def load_pretrained(self, pretrained):
         print("load from "+pretrained)
         if os.path.isfile(pretrained):

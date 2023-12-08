@@ -45,7 +45,7 @@ train_loader = DataLoader(train_dataset,
 val_loader = DataLoader(val_dataset,
                         batch_size=12,
                         shuffle=False, num_workers=args.configs['num_works'])
-test_loader = DataLoader(val_dataset,
+test_loader = DataLoader(test_dataset,
                         batch_size=12,
                         shuffle=False, num_workers=args.configs['num_works'])
 metric=Metrics("Main")
