@@ -6,8 +6,8 @@ from .tools import Fix_RandomRotation
 import json
 from PIL import Image,ImageOps
 import numpy as np
-# IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
-# IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
+IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 class ridge_segmentataion_dataset(Dataset):
     def __init__(self, data_path, split, split_name):
         with open(os.path.join(data_path, 'ridge_seg', 'split', f'{split_name}.json'), 'r') as f:
@@ -25,8 +25,8 @@ class ridge_segmentataion_dataset(Dataset):
         self.img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
-                mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334]
-                # mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
+                # mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334]
+                mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
             )])
         self.totenor=transforms.ToTensor()
     def __getitem__(self, idx):
@@ -130,8 +130,8 @@ class ridge_finetone_val(Dataset):
             # transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
-                mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334]
-                # mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
+                # mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334]
+                mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
             )])
         self.split=split
     def __len__(self):

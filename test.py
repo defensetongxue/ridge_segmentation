@@ -11,6 +11,8 @@ from sklearn.metrics import accuracy_score, roc_auc_score,recall_score
 import numpy as np
 # Parse arguments
 import time
+IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 args = get_config()
 
 # Init the result file to store the pytorch model and other mid-result
@@ -43,8 +45,9 @@ img_transforms=transforms.Compose([
     # transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
-                mean=[0.4623, 0.3856, 0.2822],
-                std=[0.2527, 0.1889, 0.1334])])
+                # mean=[0.4623, 0.3856, 0.2822], std=[0.2527, 0.1889, 0.1334]
+                mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
+                )])
 begin=time.time()
 predict=[]
 labels=[]
