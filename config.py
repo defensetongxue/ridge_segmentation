@@ -7,7 +7,7 @@ def get_config():
                         help='Path to the target folder to store the processed datasets.')
     parser.add_argument('--generate_ridge_diffusion', type=bool, default=False,
                         help='if generate the ridge cooridinate from json src.')
-    parser.add_argument('--generate_mask', type=bool, default=False,
+    parser.add_argument('--generate_mask', type=bool, default=True,
                         help='if generate the ridge cooridinate from json src.')
     
     # split
