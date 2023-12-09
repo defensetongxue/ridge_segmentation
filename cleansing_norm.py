@@ -1,5 +1,5 @@
 import os,json
-from configs import get_config
+from config import get_config
 if __name__ =='__main__':
     args=get_config()
     data_path=args.data_path
