@@ -31,7 +31,7 @@ def get_config():
     
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./config_file/hrnet_small.json", type=str)
+                        default="./config_file/hrnet_w48.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 
