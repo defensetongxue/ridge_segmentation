@@ -85,7 +85,6 @@ for epoch in range(last_epoch, total_epoches):
     
     print(metric)
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
-    # Early stopping
     if metric.image_auc > max_auc:
         save_epoch=epoch
         max_auc=metric.image_auc
@@ -93,7 +92,10 @@ for epoch in range(last_epoch, total_epoches):
         torch.save(model.state_dict(),
                    os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
-    
+    else:
+        early_stop_counter+=1
+        if early_stop_counter>args.configs['train']['"early_stop"']:
+            break
     metric.reset()
 # model.load_state_dict(
 #     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))

@@ -82,7 +82,7 @@ with torch.no_grad():
         else:
             tar=0
             val_list_negtive.append(max_val)
-        if (torch.sum(output_bin)>=50):
+        if (torch.sum(output_bin)>=1):
             pred=1
         else:
             pred=0
@@ -90,7 +90,7 @@ with torch.no_grad():
             output_img=output_img.squeeze()
             if tar==0:
 
-                visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),save_path=os.path.join(visual_dir,'0',image_name))
+                visual_mask(data['image_path'],output_img,str(round(max_val,2)),save_path=os.path.join(visual_dir,'0',image_name))
 
                 # visual_points(data['image_path'],output_img,
                 #               save_path= os.path.join(visual_dir,'0',image_name[:-4]+'_point.jpg'))
@@ -101,7 +101,7 @@ with torch.no_grad():
                 # gt[gt>0]=1
                 # visual_mask(data['image_path'],gt,str(int(torch.sum(output_img))),
                 #             save_path=os.path.join(visual_dir,'1',image_name[:-4]+'_point.jpg'))
-                visual_mask(data['image_path'],output_img,str(int(torch.sum(output_img))),
+                visual_mask(data['image_path'],output_img,str(round(max_val,2)),
                             save_path=os.path.join(visual_dir,'1',image_name))
 
                 # visual_points(data['image_path'],output_img,
