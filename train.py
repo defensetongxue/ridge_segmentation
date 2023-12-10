@@ -94,7 +94,7 @@ for epoch in range(last_epoch, total_epoches):
         print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
     else:
         early_stop_counter+=1
-        if early_stop_counter>args.configs['train']['"early_stop"']:
+        if early_stop_counter>args.configs['train']["early_stop"]:
             break
     metric.reset()
 # model.load_state_dict(
