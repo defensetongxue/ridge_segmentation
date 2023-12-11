@@ -9,6 +9,8 @@ from PIL import Image, ImageDraw,ImageFont
 import numpy as np
 # Parse arguments
 import time
+IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
+IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 def plot_points_on_image(image_path, points, save_path=None):
     # Open and resize the image
     img = Image.open(image_path).resize((800, 600))
@@ -55,22 +57,24 @@ os.makedirs(save_dir, exist_ok=True)
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
-        transforms.Resize((600,800)),
-    
+        # transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
-                mean=[0.4623, 0.3856, 0.2822],
-                std=[0.2527, 0.1889, 0.1334])])
+                # mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334])
+            mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD)
+            ])
 begin=time.time()
 predict=[]
 labels=[]
-mask=Image.open('./mask.png').resize((800,600))
-mask=np.array(mask)
-mask[mask>0]=1
 with torch.no_grad():
     for image_name in data_dict:
         data=data_dict[image_name]
-        img = Image.open(data['enhanced_path']).convert('RGB')
+        mask=Image.open(data_dict[image_name]['mask_path']).resize((400,300),resample=Image.Resampling.NEAREST)
+        mask=np.array(mask)
+        mask[mask>0]=1
+    
+        data=data_dict[image_name]
+        img = Image.open(data['enhanced_path'])
         img_tensor = img_transforms(img)
         
         img=img_tensor.unsqueeze(0).to(device)
@@ -90,16 +94,12 @@ with torch.no_grad():
             value_list.append(value)
         for x,y in pred_point:
             point_list.append([int(x),int(y)])
-        # if 'ridge' in data:
-        #     plot_points_on_image(data["image_path"],pred_point,'./experiments/points/'+image_name)
-            # plot the point and order for each point in pred_point
-            # using PIL as possible, image in data["image_path"]  and resize(800,600)
         data_dict[image_name]['ridge_seg']={
             "ridge_seg_path":os.path.join(save_dir,image_name),
             "value_list":value_list,
             "point_list":point_list,
-            "orignal_weight":800,
-            "orignal_height":600
+            "orignal_weight":1600,
+            "orignal_height":1200
         }
 with open(os.path.join(args.data_path,'annotations.json'),'w') as f:
     json.dump(data_dict,f)
