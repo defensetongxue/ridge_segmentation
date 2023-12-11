@@ -33,7 +33,7 @@ config_name=os.path.basename(args.cfg).split('.')[0]
 
 visual_dir=os.path.join(args.result_path,config_name)
 os.makedirs(visual_dir, exist_ok=True)
-os.system(f"rm -rf {visual_dir}/*")
+# os.system(f"rm -rf {visual_dir}/*")
 os.makedirs(visual_dir+'/0/', exist_ok=True)
 os.makedirs(visual_dir+'/1/', exist_ok=True)
 # Test the model and save visualizations
