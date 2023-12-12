@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+import torch.nn.functional as F
 
 class FocalLoss(nn.Module):
     def __init__(self, gamma=2, alpha=None, ignore_index=255, reduction='mean'):
@@ -78,3 +78,29 @@ class WNetLoss(nn.Module):
             return +self.bce_loss(prediction[0],targets) + \
                 self.bce_loss(prediction[1],targets)
         return self.bce_loss(prediction, targets)
+
+class StructureLoss(nn.Module):
+    def __init__(self):
+        super(StructureLoss,self).__init__()
+    def forward(self,pred,mask):
+        weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask)
+        wbce = F.binary_cross_entropy_with_logits(pred, mask, reduce='none')
+        wbce = (weit * wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
+    
+        pred = torch.sigmoid(pred)
+        inter = ((pred * mask) * weit).sum(dim=(2, 3))
+        union = ((pred + mask) * weit).sum(dim=(2, 3))
+        wiou = 1 - (inter + 1) / (union - inter + 1)
+    
+        return (wbce + wiou).mean()
+
+class Unetv2Loss(nn.Module):
+    def __init__(self):
+        super(Unetv2Loss,self).__init__()
+        self.structure_loss=StructureLoss()
+    def forward(self,preds_lists,mask):
+        P1, P2=preds_lists
+        loss_P1=self.structure_loss(P1,mask)
+        loss_p2=self.structure_loss(P2,mask)
+        return loss_P1+loss_p2
+        

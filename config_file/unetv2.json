@@ -1,0 +1,30 @@
+{
+    "num_works": 15,
+    "save_name":"hrnet.pth",
+    "model": {
+        "mask_rate":1,
+        "loss_weight":2,
+        "loss_func": "BCELoss",
+        "name": "unetv2",
+        "pretrained": "./pretrained/pvt_v2_b2.pth",
+        "deep_supervision":false
+    },
+    "lr_strategy":{
+        "warmup_epochs":10,
+        "lr":5e-4,
+        "min_lr":1e-6,
+        "epochs":100
+    },
+    "train": {
+        "batch_size":32,
+        "test_bc":4,
+        "begin_epoch": 0,
+        "end_epoch": 100,
+        "early_stop": 30,
+        "optimizer": "adamw",
+        "lr": 0.001,
+        "wd": 5e-4,
+        "momentum": 0.0,
+        "nesterov": false 
+    }
+}

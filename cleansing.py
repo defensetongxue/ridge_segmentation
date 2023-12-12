@@ -6,7 +6,9 @@ from PIL import Image
 import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
-def generate_segmentation_mask(data_path, patch_size, stride_val):
+Orignal_weight=1600
+Orignal_height=1200
+def generate_segmentation_mask(data_path, patch_size, stride_val,resize_factor=1.):
     os.makedirs(os.path.join(data_path,'ridge_seg'), exist_ok=True)
     # Clean up the directories
     os.makedirs(os.path.join(data_path,'ridge_seg','images'), exist_ok=True)
@@ -19,6 +21,8 @@ def generate_segmentation_mask(data_path, patch_size, stride_val):
     
     annotate = {}
     cnt = 0
+    resize_weight=int(Orignal_weight*resize_factor)
+    resize_height=int(Orignal_height*resize_factor)
     for image_name in data_list:
         cnt += 1
         if cnt % 100 and False: # logger
@@ -39,12 +43,12 @@ def generate_segmentation_mask(data_path, patch_size, stride_val):
                 continue # missing ridge annotation
             stride= stride_val
             mask = Image.open(data['ridge_diffusion_path'])
-            mask=mask.resize((1600,1200),resample=Image.Resampling.NEAREST)
+            mask=mask.resize((resize_weight,resize_height),resample=Image.Resampling.NEAREST)
         mask_tensor = torch.from_numpy(np.array(mask, np.float32, copy=False))
         mask_tensor[mask_tensor != 0] = 1
         
         img = Image.open(data['enhanced_path']).convert("RGB")
-        img=img.resize((1600,1200),resample=Image.Resampling.BILINEAR)
+        img=img.resize((resize_weight,resize_height),resample=Image.Resampling.BILINEAR)
         img_tensor = transforms.ToTensor()(img)
         
         # Calculate padding
@@ -120,5 +124,5 @@ if __name__=='__main__':
         generate_ridge_diffusion(args.data_path)
         print("finished")
     if args.generate_mask:
-        generate_segmentation_mask(args.data_path,args.patch_size,args.stride)
+        generate_segmentation_mask(args.data_path,args.patch_size,args.stride,resize_factor=args.resize_factor)
     generate_split(args.data_path,args.split_name)

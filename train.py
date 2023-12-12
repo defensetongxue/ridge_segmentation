@@ -28,14 +28,17 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
 criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
+# criterion=get_instance(losses,args.configs['model']['loss_func'])
 model.train()
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
 lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
+# cal the mask_resize
+mask_size= int(args.patch_size*args.configs['model']['mask_rate'])
 # Load the datasets
-train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
+train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name,mask_resize=mask_size)
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders
@@ -64,7 +67,7 @@ max_auc=0
 max_recall=0
 save_epoch=-1
 mask=Image.open('./mask.png').convert('L')
-mask =Resize((300,400),interpolation=InterpolationMode.NEAREST)(mask)
+mask =Resize((1600,1600),interpolation=InterpolationMode.NEAREST)(mask)
 mask=ToTensor()(mask)
 mask[mask>0]=1
 mask=mask.unsqueeze(0)

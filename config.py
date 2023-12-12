@@ -9,15 +9,16 @@ def get_config():
                         help='if generate the ridge cooridinate from json src.')
     parser.add_argument('--generate_mask', type=bool, default=True,
                         help='if generate the ridge cooridinate from json src.')
-    
+    parser.add_argument('--resize_factor', type=float, default=1.0,
+                        help='if generate the ridge cooridinate from json src.')
     # split
     parser.add_argument('--split_name', type=str, default='clr_1',
                         help='which split to use.')
     
     # Model
-    parser.add_argument('--patch_size', type=int, default=400,
+    parser.add_argument('--patch_size', type=int, default=384,
                         help='Name of the model architecture to be used for training.')
-    parser.add_argument('--stride', type=int, default=200,
+    parser.add_argument('--stride', type=int, default=192,
                         help='Name of the model architecture to be used for training.')
     parser.add_argument('--ridge_seg_number', type=int, default=4,
                         help='Name of the model architecture to be used for training.')
