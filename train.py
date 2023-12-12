@@ -4,12 +4,16 @@ from config import get_config
 from util import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
 from util import ridge_segmentataion_dataset as CustomDatset
 from util import ridge_finetone_val
+from  util.dataset import Padding
 import models
 import os,time
 from PIL import Image
 from  util.metric import Metrics
 from torchvision.transforms import ToTensor,InterpolationMode,Resize
 import numpy as np
+ORIGNAL_HEIGHT=1200
+ORIGNAL_WEIGHT=1600
+
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
 os.makedirs("experiments",exist_ok=True)
@@ -18,7 +22,6 @@ np.random.seed(0)
 
 # Parse arguments
 args = get_config()
-
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
 os.makedirs(result_path,exist_ok=True)
@@ -36,11 +39,13 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # cal the mask_resize
-mask_size= int(args.patch_size*args.configs['model']['mask_rate'])
+mask_size= int(args.patch_size*args.configs['model']['pred_rate'])
 # Load the datasets
 train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name,mask_resize=mask_size)
-val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
-test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
+val_dataset=ridge_finetone_val(
+    args.data_path,split_name=args.split_name,split='val',resize_factor=args.resize_factor,val_padding=args.configs['model']['val_padding'])
+test_dataset=ridge_finetone_val(
+    args.data_path,split_name=args.split_name,split='test',resize_factor=args.resize_factor,val_padding=args.configs['model']['val_padding'])
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
                           batch_size=args.configs['train']['batch_size'],
@@ -67,9 +72,14 @@ max_auc=0
 max_recall=0
 save_epoch=-1
 mask=Image.open('./mask.png').convert('L')
-mask =Resize((1600,1600),interpolation=InterpolationMode.NEAREST)(mask)
+mask =Resize(
+    (int(ORIGNAL_HEIGHT*args.resize_factor*args.configs['model']['pred_rate']),
+     int(ORIGNAL_WEIGHT*args.resize_factor*args.configs['model']['pred_rate'])),interpolation=InterpolationMode.NEAREST)(mask)
 mask=ToTensor()(mask)
 mask[mask>0]=1
+if "mask_padding" in args.configs['model']:
+    mask_padding=Padding(*args.configs['model']['mask_padding'])
+    mask=mask_padding(mask)
 mask=mask.unsqueeze(0)
 # Training and validation loop
 for epoch in range(last_epoch, total_epoches):

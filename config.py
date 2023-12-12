@@ -16,9 +16,9 @@ def get_config():
                         help='which split to use.')
     
     # Model
-    parser.add_argument('--patch_size', type=int, default=384,
+    parser.add_argument('--patch_size', type=int, default=512,
                         help='Name of the model architecture to be used for training.')
-    parser.add_argument('--stride', type=int, default=192,
+    parser.add_argument('--stride', type=int, default=256,
                         help='Name of the model architecture to be used for training.')
     parser.add_argument('--ridge_seg_number', type=int, default=4,
                         help='Name of the model architecture to be used for training.')

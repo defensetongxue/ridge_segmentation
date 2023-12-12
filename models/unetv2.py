@@ -92,13 +92,13 @@ class SDI(nn.Module):
 
     def forward(self, xs, anchor):
         ans = torch.ones_like(anchor)
-        target_size = anchor.shape[-1]
+        target_size_h,target_size_w = anchor.shape[-2],anchor.shape[-1]
 
         for i, x in enumerate(xs):
-            if x.shape[-1] > target_size:
-                x = F.adaptive_avg_pool2d(x, (target_size, target_size))
-            elif x.shape[-1] < target_size:
-                x = F.interpolate(x, size=(target_size, target_size),
+            if x.shape[-1] > target_size_w:
+                x = F.adaptive_avg_pool2d(x, (target_size_h,target_size_w))
+            elif x.shape[-1] < target_size_w:
+                x = F.interpolate(x, size=(target_size_h,target_size_w),
                                       mode='bilinear', align_corners=True)
 
             ans = ans * self.convs[i](x)
@@ -186,8 +186,8 @@ class UNetV2(nn.Module):
         y = self.deconv4(y) + f11
         seg_outs.append(self.seg_outs[3](y))
 
-        for i, o in enumerate(seg_outs):
-            seg_outs[i] = F.interpolate(o, scale_factor=4, mode='bilinear')
+        # for i, o in enumerate(seg_outs):
+        #     seg_outs[i] = F.interpolate(o, scale_factor=4, mode='bilinear')
         
         if self.deep_supervision:
             return seg_outs[::-1]
@@ -196,7 +196,7 @@ class UNetV2(nn.Module):
     def no_weight_decay(self):
         return []
 def build_unetv2(configs):
-    return UNetV2(3,n_classes=1,deep_supervision=configs["deep_supervision"],pretrained_path=configs["pretrained"])
+    return UNetV2(32,n_classes=1,deep_supervision=configs["deep_supervision"],pretrained_path=configs["pretrained"])
 if __name__ == "__main__":
     pretrained_path = "./pretrained/pvtv2.pth"
     model = UNetV2(n_classes=2, deep_supervision=True, pretrained_path=None)
