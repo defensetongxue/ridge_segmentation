@@ -93,7 +93,7 @@ with torch.no_grad():
             value=round(float(value),2)
             value_list.append(value)
         for x,y in pred_point:
-            point_list.append([int(x),int(y)])
+            point_list.append([int(y),int(x)])
         data_dict[image_name]['ridge_seg']={
             "ridge_seg_path":os.path.join(save_dir,image_name),
             "value_list":value_list,
