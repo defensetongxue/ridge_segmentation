@@ -20,7 +20,7 @@ def get_config():
                         help='Name of the model architecture to be used for training.')
     parser.add_argument('--stride', type=int, default=256,
                         help='Name of the model architecture to be used for training.')
-    parser.add_argument('--ridge_seg_number', type=int, default=5,
+    parser.add_argument('--ridge_seg_number', type=int, default=10,
                         help='Name of the model architecture to be used for training.')
     # train and test
     parser.add_argument('--save_dir', type=str, default="./checkpoints",

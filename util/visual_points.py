@@ -1,16 +1,17 @@
 import cv2
 import numpy as np
-def k_max_values_and_indices(scores, k,r=100,threshold=0.0):
+def k_max_values_and_indices(scores, k,r=100,threshold=0.40):
     # Flatten the array and get the indices of the top-k values
 
     preds_list = []
     maxvals_list = []
 
-    for _ in range(k):
+    for i in range(k):
         idx = np.unravel_index(np.argmax(scores, axis=None), scores.shape)
 
         maxval = scores[idx]
-        if maxval<threshold:
+        if maxval<threshold and i>0:
+            # an image get one image at least
             break
         maxvals_list.append(float(maxval))
         preds_list.append(idx)

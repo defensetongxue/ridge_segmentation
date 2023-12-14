@@ -56,6 +56,9 @@ os.makedirs(save_dir, exist_ok=True)
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
+    
+with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
+    test_split=json.load(f)['test']
 img_transforms=transforms.Compose([
         # transforms.Resize((600,800)),
             transforms.ToTensor(),
@@ -66,8 +69,9 @@ img_transforms=transforms.Compose([
 begin=time.time()
 predict=[]
 labels=[]
+pred_rate=args.configs['model']['pred_rate']
 with torch.no_grad():
-    for image_name in data_dict:
+    for image_name in test_split:
         data=data_dict[image_name]
         mask=Image.open(data_dict[image_name]['mask_path']).resize((400,300),resample=Image.Resampling.NEAREST)
         mask=np.array(mask)
@@ -93,7 +97,7 @@ with torch.no_grad():
             value=round(float(value),2)
             value_list.append(value)
         for x,y in pred_point:
-            point_list.append([int(y),int(x)])
+            point_list.append([int(y/pred_rate),int(x/pred_rate)])
         data_dict[image_name]['ridge_seg']={
             "ridge_seg_path":os.path.join(save_dir,image_name),
             "value_list":value_list,
