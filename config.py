@@ -15,9 +15,9 @@ def get_config():
                         help='which split to use.')
     
     # Model
-    parser.add_argument('--patch_size', type=int, default=400,
+    parser.add_argument('--patch_size', type=int, default=200,
                         help='Name of the model architecture to be used for training.')
-    parser.add_argument('--stride', type=int, default=200,
+    parser.add_argument('--stride', type=int, default=100,
                         help='Name of the model architecture to be used for training.')
     parser.add_argument('--ridge_seg_number', type=int, default=4,
                         help='Name of the model architecture to be used for training.')
@@ -31,7 +31,7 @@ def get_config():
     
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./config_file/hrnet_w48.json", type=str)
+                        default="./config_file/hrnet_small.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 

@@ -21,7 +21,7 @@ class ridge_segmentataion_dataset(Dataset):
             transforms.RandomVerticalFlip(p=0.5),
             Fix_RandomRotation(),
         ])
-        self.mask_resize=transforms.Resize((100,100), interpolation=transforms.InterpolationMode.NEAREST)
+        self.mask_resize=transforms.Resize((50,50), interpolation=transforms.InterpolationMode.NEAREST)
         self.img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -127,7 +127,7 @@ class ridge_finetone_val(Dataset):
             
         # self.mask_resize=transforms.Resize((0,200))
         self.img_transforms=transforms.Compose([
-            # transforms.Resize((600,800)),
+            transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 # mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334]

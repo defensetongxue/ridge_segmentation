@@ -77,7 +77,8 @@
         "epochs":100
     },
     "train": {
-        "batch_size": 64,
+        "batch_size": 128,
+        "test_bc":32,
         "begin_epoch": 0,
         "end_epoch": 100,
         "early_stop": 30,

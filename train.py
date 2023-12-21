@@ -64,7 +64,7 @@ max_auc=0
 max_recall=0
 save_epoch=-1
 mask=Image.open('./mask.png').convert('L')
-mask =Resize((300,400),interpolation=InterpolationMode.NEAREST)(mask)
+mask =Resize((150,200),interpolation=InterpolationMode.NEAREST)(mask)
 mask=ToTensor()(mask)
 mask[mask>0]=1
 mask=mask.unsqueeze(0)

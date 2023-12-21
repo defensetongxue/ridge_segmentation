@@ -42,7 +42,7 @@ with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
-    # transforms.Resize((600,800)),
+    transforms.Resize((600,800)),
             transforms.ToTensor(),
             transforms.Normalize(
                 # mean=[0.4623, 0.3856, 0.2822], std=[0.2527, 0.1889, 0.1334]
