@@ -14,30 +14,41 @@ def to_device(x, device):
         return x.to(device)
 
 
-def train_epoch(model, optimizer, train_loader, loss_function, device, lr_scheduler, epoch):
+import torch.nn.functional as F
+
+def train_epoch(model, optimizer, train_loader, loss_function, device, lr_scheduler, epoch, scales=[0.75, 1.0, 1.25]):
     model.train()
     running_loss = 0.0
-    batch_length = len(train_loader)
+
     for data_iter_step, (inputs, targets, meta) in enumerate(train_loader):
-        # Moving inputs and targets to the correct device
-        lr_scheduler.adjust_learning_rate(
-            optimizer, epoch+(data_iter_step/batch_length))
-        inputs = to_device(inputs, device)
-        targets = to_device(targets, device)
+        # Adjust learning rate based on the current epoch and iteration
+        lr_scheduler.adjust_learning_rate(optimizer, epoch + (data_iter_step / len(train_loader)))
 
-        optimizer.zero_grad()
+        for scale in scales:
+            # Resize inputs and targets based on the current scale
+            scaled_inputs = F.interpolate(inputs, scale_factor=scale, mode='bilinear', align_corners=True, recompute_scale_factor=True)
+            scaled_targets = F.interpolate(targets, scale_factor=scale, mode='nearest', recompute_scale_factor=True)
 
-        # Assuming your model returns a tuple of outputs
-        outputs = model(inputs)
+            # Move scaled inputs and targets to the correct device
+            scaled_inputs = to_device(scaled_inputs, device)
+            scaled_targets = to_device(scaled_targets, device)
 
-        # Assuming your loss function can handle tuples of outputs and targets
-        loss = loss_function(outputs, targets)
+            optimizer.zero_grad()
 
-        loss.backward()
-        optimizer.step()
+            # Forward pass
+            outputs = model(scaled_inputs)
 
-        running_loss += loss.item()
-    return running_loss / len(train_loader)
+            # Compute loss
+            loss = loss_function(outputs, scaled_targets)
+
+            # Backward pass and optimize
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+
+    return running_loss / (len(train_loader) * len(scales))
+
 
 
 def val_epoch(model, val_loader, loss_function, device, metric: Metrics,mask):
