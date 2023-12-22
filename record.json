@@ -22,5 +22,13 @@
             "image_recall": 0.9904,
             "save_epoch": 33
         }
+    },
+    "4": {
+        "clr_1": {
+            "image_accuracy": 0.8949,
+            "image_auc": 0.9262,
+            "image_recall": 0.9776,
+            "save_epoch": 71
+        }
     }
 }
