@@ -27,7 +27,7 @@ print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
 model = get_instance(models, args.configs['model']['name'],args.configs['model'])
-criterion=get_instance(losses,args.configs['model']['loss_func'],pos_weight=args.configs['model']['loss_weight'])
+criterion = get_instance(losses, args.configs['loss']['name'], **args.configs["loss"]["params"])
 model.train()
 # Creatr optimizer
 optimizer = get_optimizer(args.configs, model)
@@ -64,7 +64,7 @@ max_auc=0
 max_recall=0
 save_epoch=-1
 mask=Image.open('./mask.png').convert('L')
-mask =Resize((150,200),interpolation=InterpolationMode.NEAREST)(mask)
+mask =Resize((300,400),interpolation=InterpolationMode.NEAREST)(mask)
 mask=ToTensor()(mask)
 mask[mask>0]=1
 mask=mask.unsqueeze(0)

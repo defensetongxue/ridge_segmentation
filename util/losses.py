@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 
+import torch.nn.functional as F
 
 class FocalLoss(nn.Module):
-    def __init__(self, gamma=2, alpha=None, ignore_index=255, reduction='mean'):
+    def __init__(self, gamma=2, alpha=None, ignore_index=-1, reduction='mean'):
         super(FocalLoss, self).__init__()
         self.gamma = gamma
         self.reduction = reduction
@@ -20,11 +21,11 @@ class FocalLoss(nn.Module):
 
 
 class BCELoss(nn.Module):
-    def __init__(self, reduction="mean", pos_weight=1.0):
+    def __init__(self,  pos_weight=1.0):
         pos_weight = torch.tensor(pos_weight).cuda()
         super(BCELoss, self).__init__()
         self.bce_loss = nn.BCEWithLogitsLoss(
-            reduction=reduction, pos_weight=pos_weight)
+            reduction='mean', pos_weight=pos_weight)
 
     def forward(self, prediction, targets):
         return self.bce_loss(prediction, targets)
@@ -53,6 +54,22 @@ class DiceLoss(nn.Module):
         union = torch.sum(prediction) + torch.sum(target) + self.smooth
         loss = 1 - intersection / union
         return loss
+class MSELoss(nn.Module):
+    def __init__(self, mse_weight=1.0):
+        super(MSELoss, self).__init__()
+        self.mse_weight = mse_weight
+        self.loss=nn.MSELoss()
+    def forward(self, outputs, targets):
+        # Apply sigmoid to the outputs
+        sigmoid_outputs = torch.sigmoid(outputs)
+
+        # Compute MSE Loss
+        mse_loss = self.loss(sigmoid_outputs,targets)
+
+        # Scale the loss
+        loss = self.mse_weight * mse_loss
+
+        return loss
 
 
 class CE_DiceLoss(nn.Module):
@@ -78,3 +95,20 @@ class WNetLoss(nn.Module):
             return +self.bce_loss(prediction[0],targets) + \
                 self.bce_loss(prediction[1],targets)
         return self.bce_loss(prediction, targets)
+    
+
+    
+class StructureLoss(nn.Module):
+    def __init__(self):
+        super(StructureLoss,self).__init__()
+    def forward(self,pred,mask):
+        weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask)
+        wbce = F.binary_cross_entropy_with_logits(pred, mask, reduce='none')
+        wbce = (weit * wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
+    
+        pred = torch.sigmoid(pred)
+        inter = ((pred * mask) * weit).sum(dim=(2, 3))
+        union = ((pred + mask) * weit).sum(dim=(2, 3))
+        wiou = 1 - (inter + 1) / (union - inter + 1)
+    
+        return (wbce + wiou).mean()

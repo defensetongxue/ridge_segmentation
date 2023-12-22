@@ -1,10 +1,9 @@
 {
     "num_works": 15,
-    "save_name":"hrnet.pth",
+    "save_name":"2.pth",
     "loss":{
-        "name":"BCELoss",
+        "name":"MSELoss",
         "params":{
-            "pos_weight":2
         }
     },
     "model": {

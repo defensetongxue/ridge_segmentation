@@ -1,6 +1,6 @@
 {
     "num_works": 15,
-    "save_name":"hrnet.pth",
+    "save_name":"1.pth",
     "loss":{
         "name":"BCELoss",
         "params":{

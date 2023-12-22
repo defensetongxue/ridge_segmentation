@@ -1,5 +1,4 @@
-
-python -u test.py --split_name clr_1
-python -u test.py --split_name clr_2
-python -u test.py --split_name clr_3
-python -u test.py --split_name clr_4
+python -u train.py --cfg configs/1.json 
+python -u train.py --cfg configs/2.json 
+python -u train.py --cfg configs/3.json 
+python -u train.py --cfg configs/4.json 

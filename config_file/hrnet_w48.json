@@ -1,9 +1,13 @@
 {
     "num_works": 15,
     "save_name":"hrnet_large.pth",
+    "loss":{
+        "name":"BCELoss",
+        "params":{
+            "pos_weight":2
+        }
+    },
     "model": {
-        "loss_func": "BCELoss",
-        "loss_weight":2.0,
         "name": "hrnet",
         "pretrained": "./pretrained/hrnet_large.pth",
         "extra": {

@@ -1,0 +1,26 @@
+{
+    "1": {
+        "clr_1": {
+            "image_accuracy": 0.9174,
+            "image_auc": 0.9463,
+            "image_recall": 0.9936,
+            "save_epoch": 39
+        }
+    },
+    "2": {
+        "clr_1": {
+            "image_accuracy": 0.9168,
+            "image_auc": 0.941,
+            "image_recall": 0.9808,
+            "save_epoch": 57
+        }
+    },
+    "3": {
+        "clr_1": {
+            "image_accuracy": 0.8892,
+            "image_auc": 0.9275,
+            "image_recall": 0.9904,
+            "save_epoch": 33
+        }
+    }
+}
