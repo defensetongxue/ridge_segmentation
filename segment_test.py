@@ -11,28 +11,6 @@ import numpy as np
 import time
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
-def plot_points_on_image(image_path, points, save_path=None):
-    # Open and resize the image
-    img = Image.open(image_path).resize((800, 600))
-    draw = ImageDraw.Draw(img)
-
-    # Optional: Load a font if you want to use specific font styles
-    try:
-        font = ImageFont.truetype("arial.ttf", 15)
-    except IOError:
-        font = ImageFont.load_default()
-
-    # Draw each point and its order
-    for i, (y, x) in enumerate(points):
-        # Draw the point
-        draw.ellipse([(x - 5, y - 5), (x + 5, y + 5)], fill="red", outline="red")
-
-        # Draw the order number near the point
-        draw.text((x + 10, y - 10), str(i + 1), fill="blue", font=font)
-
-    # Save or show the image
-    if save_path:
-        img.save(save_path)
 args = get_config()
 
 # Init the result file to store the pytorch model and other mid-result
@@ -86,6 +64,7 @@ with torch.no_grad():
         seg_img=np.array(output_img*255,dtype=np.uint8)
         seg_img=Image.fromarray(seg_img)
         seg_img.save(os.path.join(save_dir,image_name))
+        
         maxval,pred_point=k_max_values_and_indices(output_img,args.ridge_seg_number,r=60)
         value_list=[]
         point_list=[]

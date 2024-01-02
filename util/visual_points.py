@@ -14,7 +14,6 @@ def k_max_values_and_indices(scores, k,r=100,threshold=0.0):
             break
         maxvals_list.append(float(maxval))
         preds_list.append(idx)
-
         # Clear the square region around the point
         x, y = idx[0], idx[1]
         xmin, ymin = max(0, x - r // 2), max(0, y - r // 2)
