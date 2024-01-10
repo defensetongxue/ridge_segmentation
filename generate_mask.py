@@ -4,7 +4,7 @@ import numpy as np
 data_path='../autodl-tmp/dataset_ROP'
 with open(os.path.join(data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
-os.makedirs(os.path.join(data_path,'mask'))
+os.makedirs(os.path.join(data_path,'mask'),exist_ok=True)
 
 def generate_mask(image_path,left_cut=80, right_cut=60,save_path=None):
     img=Image.open(image_path)
@@ -25,7 +25,7 @@ def generate_mask(image_path,left_cut=80, right_cut=60,save_path=None):
 for image_name in data_dict:
     save_mask_path=os.path.join(data_path,'mask',image_name)
     generate_mask(data_dict[image_name]['image_path'],
-                  save_mask_path)
+                  save_path=save_mask_path)
     data_dict[image_name]['mask_path']=save_mask_path
 with open(os.path.join(data_path,'annotations.json'),'w') as f:
     json.dump(data_dict,f)

@@ -54,7 +54,6 @@ img_transforms=transforms.Compose([
 begin=time.time()
 predict=[]
 labels=[]
-
 val_list_postive=[]
 val_list_negtive=[]
 val_list=[]
@@ -73,10 +72,10 @@ with torch.no_grad():
         # Resize the output to the original image size
         
         output_img=torch.sigmoid(output_img)
-        max_val=float(torch.max(output_img))
         output_img=F.interpolate(output_img,(1200,1600), mode='nearest')
         
         output_img=output_img*mask
+        max_val=float(torch.max(output_img))
         val_list.append(max_val)
         
         output_bin=torch.where(output_img>0.5,1,0).squeeze()
@@ -97,7 +96,7 @@ with torch.no_grad():
             else:
                 visual_mask(data['image_path'],output_img,str(round(max_val,2)),
                             save_path=os.path.join(visual_dir,'1',image_name))
-        if max_val>0.5 or data['stage']>0:
+        if max_val>=0.5:
             # save the ridge seg for visual and sample for stage
             maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.ridge_seg_number,r=60,threshold=0.3)
             value_list=[]
@@ -105,17 +104,21 @@ with torch.no_grad():
             for value in maxval:
                 value=round(float(value),2)
                 value_list.append(value)
-            for x,y in pred_point:
+            for y,x in pred_point:
                 point_list.append([int(x),int(y)])
             data_dict[image_name]['ridge_seg']={
                 "ridge_seg_path":os.path.join(ridge_seg_save_dir,image_name),
                 "value_list":value_list,
                 "point_list":point_list,
                 "orignal_weight":1600,
-                "orignal_height":1200
+                "orignal_height":1200,
+                'max_val':max_val
+                
             }
-        
-        
+        else:
+            data_dict[image_name]['ridge_seg']={
+                'max_val':max_val
+            }
 
         labels.append(tar)
         predict.append(pred)
