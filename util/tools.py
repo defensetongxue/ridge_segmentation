@@ -141,7 +141,7 @@ def visual_mask(image_path, mask,text=None,save_path='./tmp.jpg'):
     # Define font and size.
     if text is not None:
         draw = ImageDraw.Draw(composite)
-        font = ImageFont.truetype( 'arial.ttf',size=30)  # 20 is the font size. Adjust as needed.
+        font = ImageFont.truetype( 'arial.ttf',size=40)  # 20 is the font size. Adjust as needed.
 
         draw.text((10, 10), text, fill="white", font=font)  # Prints the text in the top-left corner with a 
         # Convert back to RGB mode (no transparency).

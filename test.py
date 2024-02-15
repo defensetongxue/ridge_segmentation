@@ -57,6 +57,9 @@ labels=[]
 val_list_postive=[]
 val_list_negtive=[]
 val_list=[]
+save_ridge_seg=False
+save_all_visual=True
+save_all_dir=os.path.join(args.data_path,'ridge_visual')
 with torch.no_grad():
     for image_name in split_list:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((1600,1200),resample=Image.Resampling.BILINEAR)
@@ -97,6 +100,25 @@ with torch.no_grad():
                 visual_mask(data['image_path'],output_img,str(round(max_val,2)),
                             save_path=os.path.join(visual_dir,'1',image_name))
         if max_val>=0.5:
+            if save_all_visual:
+                visual_mask(data['image_path'],output_img.squeeze(),str(round(max_val,2)),
+                            save_path=os.path.join(ridge_seg_save_dir,image_name))
+                data_dict[image_name]['ridge_visual_path']=os.path.join(ridge_seg_save_dir,image_name)
+            ridge_seg_path=None
+            if save_ridge_seg:
+                # Construct the file path for saving the image
+                ridge_seg_path = os.path.join(ridge_seg_save_dir, image_name)[:-4] + '.png'
+
+                # Squeeze the tensor to remove any extra dimensions
+                output_img = output_img.squeeze()
+
+                # Convert the tensor to a PIL image
+                # Assuming the tensor is in the range [0, 1)
+                output_img_pil = Image.fromarray((output_img.numpy() * 255).astype('uint8'))
+
+                # Save the image
+                output_img_pil.save(ridge_seg_path)
+                
             # save the ridge seg for visual and sample for stage
             maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.ridge_seg_number,r=60,threshold=0.3)
             value_list=[]
@@ -107,12 +129,14 @@ with torch.no_grad():
             for y,x in pred_point:
                 point_list.append([int(x),int(y)])
             data_dict[image_name]['ridge_seg']={
-                "ridge_seg_path":os.path.join(ridge_seg_save_dir,image_name),
+                "ridge_seg_path":ridge_seg_path,
                 "value_list":value_list,
                 "point_list":point_list,
                 "orignal_weight":1600,
                 "orignal_height":1200,
-                'max_val':max_val
+                'max_val':max_val,
+                "sample_number":args.ridge_seg_number,
+                "sample_interval":60
                 
             }
         else:
