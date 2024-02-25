@@ -48,7 +48,6 @@ with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
 img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
-                # mean=[0.4623, 0.3856, 0.2822], std=[0.2527, 0.1889, 0.1334]
                 mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
                 )])
 begin=time.time()
@@ -57,9 +56,8 @@ labels=[]
 val_list_postive=[]
 val_list_negtive=[]
 val_list=[]
-save_ridge_seg=False
 save_all_visual=True
-save_all_dir=os.path.join(args.data_path,'ridge_visual')
+save_all_dir=os.path.join(args.data_path,'ridge_seg')
 with torch.no_grad():
     for image_name in split_list:
         mask=Image.open(data_dict[image_name]['mask_path']).resize((1600,1200),resample=Image.Resampling.BILINEAR)
@@ -101,13 +99,9 @@ with torch.no_grad():
                             save_path=os.path.join(visual_dir,'1',image_name))
         if max_val>=0.5:
             if save_all_visual:
-                visual_mask(data['image_path'],output_img.squeeze(),str(round(max_val,2)),
-                            save_path=os.path.join(ridge_seg_save_dir,image_name))
-                data_dict[image_name]['ridge_visual_path']=os.path.join(ridge_seg_save_dir,image_name)
-            ridge_seg_path=None
-            if save_ridge_seg:
+                data_dict[image_name]['ridge_seg_path']=os.path.join(save_all_dir,image_name)
                 # Construct the file path for saving the image
-                ridge_seg_path = os.path.join(ridge_seg_save_dir, image_name)[:-4] + '.png'
+                ridge_seg_path = os.path.join(save_all_dir,image_name)
 
                 # Squeeze the tensor to remove any extra dimensions
                 output_img = output_img.squeeze()
