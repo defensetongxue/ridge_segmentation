@@ -83,8 +83,13 @@ def get_optimizer(cfg, model):
             nesterov=cfg['train']['nesterov']
         )
     elif cfg['train']['optimizer'] == 'adamw':
-        no_decay = set(model.no_weight_decay())
-        print(no_decay)
+        if hasattr(model, 'no_weight_decay'):
+            no_decay = set(model.no_weight_decay())
+            formatted_list = ", ".join(no_decay)
+            print(f"No weight decay for: {formatted_list}")
+        else:
+            no_decay = []
+
         # Separate model parameters into those that will and won't have weight decay applied
         decay_params = []
         no_decay_params = []

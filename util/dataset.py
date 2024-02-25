@@ -83,8 +83,8 @@ class ridge_trans_dataset(Dataset):
         self.img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
-                mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334]
-                # mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
+                # mean=[0.4623, 0.3856, 0.2822],std=[0.2527, 0.1889, 0.1334],
+                mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
             )])
         self.totenor=transforms.ToTensor()
     def __getitem__(self, idx):
@@ -110,7 +110,7 @@ class ridge_trans_dataset(Dataset):
         gt[gt != 0] = 1.
         img = self.img_transforms(img)
         if self.split=='val':
-            ridge_label=1 if 'ridge' in data else 0
+            ridge_label=1 if data['stage']>0 else 0
             return img,ridge_label,image_name
         return img, gt, image_name
 

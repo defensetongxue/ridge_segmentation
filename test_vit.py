@@ -1,16 +1,13 @@
-import json
-import os
 import torch
-from config import get_config
-from torchvision import transforms
-from util import get_instance,visual_mask,k_max_values_and_indices
-import models
-from PIL import Image
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, roc_auc_score,recall_score
+from config import get_config
+from util import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
+from PIL import Image
+from models import get_transUnet
+import os,time,json
 import numpy as np
-# Parse arguments
-import time
+from torchvision import transforms
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 args = get_config()
@@ -21,7 +18,7 @@ os.makedirs(result_path,exist_ok=True)
 print(f"the mid-result and the pytorch model will be stored in {result_path}")
 
 # Create the model and criterion
-model = get_instance(models, args.configs['model']['name'],args.configs['model'])
+model = get_transUnet(512,1)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 model.load_state_dict(
@@ -35,6 +32,7 @@ with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
+            transforms.Resize((512,512)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD
@@ -47,15 +45,16 @@ val_list_negtive=[]
 val_list=[]
 
 visual_error=False
-config_name=os.path.basename(args.cfg).split('.')[0]
-visual_dir=os.path.join(args.result_path,config_name)
-os.makedirs(visual_dir, exist_ok=True)
-os.makedirs(visual_dir+'/0/', exist_ok=True)
-os.makedirs(visual_dir+'/1/', exist_ok=True)
+if visual_error:
+    config_name=os.path.basename(args.cfg).split('.')[0]
+    visual_dir=os.path.join(args.result_path,config_name)
+    os.makedirs(visual_dir, exist_ok=True)
+    os.makedirs(visual_dir+'/0/', exist_ok=True)
+    os.makedirs(visual_dir+'/1/', exist_ok=True)
 
 with torch.no_grad():
     for image_name in split_list:
-        mask=Image.open(data_dict[image_name]['mask_path']).resize((1600,1200),resample=Image.Resampling.BILINEAR)
+        mask=Image.open(data_dict[image_name]['mask_path']).resize((512,512),resample=Image.Resampling.BILINEAR)
         mask=np.array(mask)
         mask[mask>0]=1
     
@@ -68,7 +67,7 @@ with torch.no_grad():
         # Resize the output to the original image size
         
         output_img=torch.sigmoid(output_img)
-        output_img=F.interpolate(output_img,(1200,1600), mode='nearest')
+        output_img=F.interpolate(output_img,(512,512), mode='nearest')
         
         output_img=output_img*mask
         max_val=float(torch.max(output_img))
@@ -88,11 +87,7 @@ with torch.no_grad():
         if pred!=tar:
             output_img=output_img.squeeze()
             if visual_error:
-                if tar==0:
-                    visual_mask(data['image_path'],output_img,str(round(max_val,2)),save_path=os.path.join(visual_dir,'0',image_name))
-                else:
-                    visual_mask(data['image_path'],output_img,str(round(max_val,2)),
-                                save_path=os.path.join(visual_dir,'1',image_name))
+                raise# not implement
         
         labels.append(tar)
         predict.append(pred)
