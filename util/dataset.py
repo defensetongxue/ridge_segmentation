@@ -9,10 +9,10 @@ import numpy as np
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 class ridge_segmentataion_dataset(Dataset):
-    def __init__(self, data_path, split, split_name):
-        with open(os.path.join(data_path, 'ridge_seg', 'split', f'{split_name}.json'), 'r') as f:
+    def __init__(self, data_path, split, split_name,factor=0.25):
+        with open(os.path.join(data_path, 'ridge_seg_patchtify', 'split', f'{split_name}.json'), 'r') as f:
             split_list=json.load(f)
-        with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'r') as f:
+        with open(os.path.join(data_path, 'ridge_seg_patchtify', 'annotations.json'), 'r') as f:
             self.data_dict=json.load(f)
         self.split_list=split_list[split]
         self.split = split
@@ -21,7 +21,10 @@ class ridge_segmentataion_dataset(Dataset):
             transforms.RandomVerticalFlip(p=0.5),
             Fix_RandomRotation(),
         ])
-        self.mask_resize=transforms.Resize((100,100), interpolation=transforms.InterpolationMode.NEAREST)
+        if factor!=1.:
+            self.mask_resize=transforms.Resize((100,100), interpolation=transforms.InterpolationMode.NEAREST)
+        else:
+            self.mask_resize=None
         self.img_transforms=transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(
@@ -36,7 +39,8 @@ class ridge_segmentataion_dataset(Dataset):
         img = Image.open(data['image_path']).convert('RGB')
         if data['mask_path']:
             gt = Image.open(data['mask_path'])
-            gt=self.mask_resize(gt)
+            if self.mask_resize:
+                gt=self.mask_resize(gt)
         else:
             raise
             patch_size = data['patch_size']

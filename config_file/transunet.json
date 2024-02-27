@@ -5,7 +5,6 @@
         "loss_func": "BCELoss",
         "loss_weight":1,
         "name": "hrnet",
-        "pretrained": "./pretrained/hrnet.pth",
         "extra": {}
     },
     "lr_strategy":{

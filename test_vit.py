@@ -97,3 +97,26 @@ recall=recall_score(labels,predict)
 print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
+# Check if the record file exists and load it; if not, initialize an empty dict
+record_path = './experiments/record.json'
+if os.path.exists(record_path):
+    with open(record_path, 'r') as f:
+        record = json.load(f)
+else:
+    record = {}
+
+# Update the record for the current model and split
+args = get_config()  # Make sure this returns the correct configuration
+if 'transunet' not in record:
+    record['transunet'] = {}
+
+# Correct the syntax for storing metrics in the dictionary
+record['transunet'][args.split_name] = {
+    "Accuracy": f"{acc:.4f}",
+    "AUC": f"{auc:.4f}",
+    "Recall": f"{recall:.4f}"
+}
+
+# Write the updated record back to the file
+with open(record_path, 'w') as f:
+    json.dump(record, f, indent=4)

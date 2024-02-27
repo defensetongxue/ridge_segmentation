@@ -2,6 +2,8 @@
     "num_works": 15,
     "save_name":"unet.pth",
     "model": {
+        "record_name":"Unet",
+        "factor":1,
         "loss_func": "BCELoss",
         "loss_weight":1.0,
         "name": "unet",
@@ -12,16 +14,17 @@
     },
     "lr_strategy":{
         "warmup_epochs":10,
-        "lr":1e-3,
+        "lr":5e-4,
         "min_lr":1e-6,
-        "epochs":50
+        "epochs":100
     },
     "train": {
-        "batch_size": 120,
+        "batch_size": 64,
+        "test_bc":4,
         "begin_epoch": 0,
-        "end_epoch": 50,
-        "early_stop": 100,
-        "optimizer": "adam",
+        "end_epoch": 100,
+        "early_stop": 30,
+        "optimizer": "adamw",
         "lr": 0.001,
         "wd": 5e-4,
         "momentum": 0.0,

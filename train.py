@@ -35,7 +35,7 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name)
+train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name,factor=args.configs['model']['factor'])
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders
@@ -64,7 +64,7 @@ max_auc=0
 max_recall=0
 save_epoch=-1
 mask=Image.open('./mask.png').convert('L')
-mask =Resize((300,400),interpolation=InterpolationMode.NEAREST)(mask)
+mask =Resize((int(1200*args.configs['model']['factor']),int(1600*args.configs['model']['factor'])),interpolation=InterpolationMode.NEAREST)(mask)
 mask=ToTensor()(mask)
 mask[mask>0]=1
 mask=mask.unsqueeze(0)
@@ -99,8 +99,8 @@ for epoch in range(last_epoch, total_epoches):
     metric.reset()
 # model.load_state_dict(
 #     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
-# )
-test_loss,metric = val_epoch(model, test_loader, criterion, device,metric,mask)
-print(metric)
-key=f'{str(os.path.basename(args.cfg)[:-5])}'
-metric._store(key,args.split_name,save_epoch)
+# # )
+# test_loss,metric = val_epoch(model, test_loader, criterion, device,metric,mask)
+# print(metric)
+# key=f'{str(os.path.basename(args.cfg)[:-5])}'
+# metric._store(key,args.split_name,save_epoch)

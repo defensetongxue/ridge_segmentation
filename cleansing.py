@@ -7,12 +7,12 @@ import numpy as np
 from torch.nn.functional import pad
 import torch.nn.functional as F
 def generate_segmentation_mask(data_path, patch_size, stride_val):
-    os.makedirs(os.path.join(data_path,'ridge_seg'), exist_ok=True)
+    os.makedirs(os.path.join(data_path,'ridge_seg_patchtify'), exist_ok=True)
     # Clean up the directories
-    os.makedirs(os.path.join(data_path,'ridge_seg','images'), exist_ok=True)
-    os.system(f"find {os.path.join(data_path,'ridge_seg','images')} -type f -delete")
-    os.makedirs(os.path.join(data_path,'ridge_seg','masks'), exist_ok=True)
-    os.system(f"find {os.path.join(data_path,'ridge_seg','masks')} -type f -delete")
+    os.makedirs(os.path.join(data_path,'ridge_seg_patchtify','images'), exist_ok=True)
+    os.system(f"find {os.path.join(data_path,'ridge_seg_patchtify','images')} -type f -delete")
+    os.makedirs(os.path.join(data_path,'ridge_seg_patchtify','masks'), exist_ok=True)
+    os.system(f"find {os.path.join(data_path,'ridge_seg_patchtify','masks')} -type f -delete")
     
     with open(os.path.join(data_path,'annotations.json'), 'r') as f:
         data_list = json.load(f)
@@ -63,8 +63,8 @@ def generate_segmentation_mask(data_path, patch_size, stride_val):
                 mask_patch = mask_tensor[j:j+patch_size, i:i+patch_size]
                 save_name = f"{data['id']}_{str(i//stride)}_{str(j//stride)}"
 
-                img_patch_path = os.path.join(data_path, 'ridge_seg', 'images', f"{save_name}.jpg")
-                mask_patch_path = os.path.join(data_path, 'ridge_seg', 'masks', f"{save_name}.png")
+                img_patch_path = os.path.join(data_path, 'ridge_seg_patchtify', 'images', f"{save_name}.jpg")
+                mask_patch_path = os.path.join(data_path, 'ridge_seg_patchtify', 'masks', f"{save_name}.png")
 
                 Image.fromarray((img_patch.permute(1, 2, 0).numpy() * 255).astype(np.uint8)).save(img_patch_path)
                 Image.fromarray((mask_patch.numpy() * 255).astype(np.uint8)).save(mask_patch_path)
@@ -79,11 +79,11 @@ def generate_segmentation_mask(data_path, patch_size, stride_val):
                 }
 
     # Save the annotation
-    with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'w') as f:
+    with open(os.path.join(data_path, 'ridge_seg_patchtify', 'annotations.json'), 'w') as f:
         json.dump(annotate, f)
 def generate_split(data_path,split_name):
     '''generate patch split from orignal split '''
-    os.makedirs(os.path.join(data_path,'ridge_seg','split'),exist_ok=True)
+    os.makedirs(os.path.join(data_path,'ridge_seg_patchtify','split'),exist_ok=True)
 
     with open(os.path.join(data_path,'split',f"{split_name}.json"),'r') as f:
         orignal_split=json.load(f)
@@ -96,7 +96,7 @@ def generate_split(data_path,split_name):
         for image_name in image_name_list:
             split_dict[image_name.split('.')[0]]=split # id : split
     
-    with open(os.path.join(data_path, 'ridge_seg', 'annotations.json'), 'r') as f:
+    with open(os.path.join(data_path, 'ridge_seg_patchtify', 'annotations.json'), 'r') as f:
         patch_data_list=json.load(f)
     new_split={
         'train':[],
@@ -107,7 +107,7 @@ def generate_split(data_path,split_name):
         if data_id not in split_dict: # test set
             continue
         new_split[split_dict[data_id]].append(data_name)
-    with open(os.path.join(data_path,'ridge_seg','split',f"{split_name}.json"),'w') as f:
+    with open(os.path.join(data_path,'ridge_seg_patchtify','split',f"{split_name}.json"),'w') as f:
         json.dump(new_split,f)     
 if __name__=='__main__':
     from config import get_config

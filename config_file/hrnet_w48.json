@@ -2,6 +2,7 @@
     "num_works": 15,
     "save_name":"hrnet_large.pth",
     "model": {
+        "record_name":"HRNet_large",
         "loss_func": "BCELoss",
         "loss_weight":2.0,
         "name": "hrnet",
