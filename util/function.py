@@ -105,7 +105,7 @@ def get_optimizer(cfg, model):
         optimizer = optim.AdamW([
             {'params': no_decay_params, 'weight_decay': 0.0},  # No weight decay
             {'params': decay_params, 'weight_decay': cfg['train']['wd']}  # Apply weight decay
-        ], lr=cfg['train']['lr'])
+        ], lr=cfg["lr_strategy"]["lr"])
         # optimizer = optim.AdamW(
         #     filter(lambda p: p.requires_grad, model.parameters()),
         #     lr=cfg['train']['lr'], weight_decay=cfg['train']['wd']

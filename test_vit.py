@@ -28,7 +28,7 @@ model.eval()
 # args.split_name='all'
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
-    split_list=json.load(f)['test']
+    split_list=json.load(f)['test'][:10]
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
@@ -112,9 +112,11 @@ else:
 args = get_config()  # Make sure this returns the correct configuration
 if 'transunet' not in record:
     record['transunet'] = {}
-
+key=str(args.lr)+str(args.wd)
+if key not in record['transunet']:
+    record['transunet'][key]={}
 # Correct the syntax for storing metrics in the dictionary
-record['transunet'][args.split_name] = {
+record['transunet'][key][args.split_name] = {
     "Accuracy": f"{acc:.4f}",
     "AUC": f"{auc:.4f}",
     "Recall": f"{recall:.4f}"

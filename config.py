@@ -29,6 +29,10 @@ def get_config():
     parser.add_argument('--from_checkpoint', type=str, default="",
                         help='load the exit checkpoint.')
     
+    parser.add_argument('--lr', type=float, default=5e-4,
+                        help='load the exit checkpoint.')
+    parser.add_argument('--wd', type=float, default=5e-4,
+                        help='load the exit checkpoint.')
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
                         default="./config_file/hrnet_w48.json", type=str)
