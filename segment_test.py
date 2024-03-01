@@ -43,9 +43,6 @@ img_transforms=transforms.Compose([
 begin=time.time()
 predict=[]
 labels=[]
-val_list_postive=[]
-val_list_negtive=[]
-val_list=[]
 save_all_visual=True
 save_all_dir=os.path.join(args.data_path,'ridge_seg')
 with torch.no_grad():
@@ -67,15 +64,12 @@ with torch.no_grad():
         
         output_img=output_img*mask
         max_val=float(torch.max(output_img))
-        val_list.append(max_val)
         
         output_bin=torch.where(output_img>0.5,1,0).squeeze()
         if data['stage']>0:
             tar=1
-            val_list_postive.append(max_val)
         else:
             tar=0
-            val_list_negtive.append(max_val)
         if (torch.sum(output_bin)>=1):
             pred=1
         else:
@@ -84,20 +78,18 @@ with torch.no_grad():
             output_img=output_img.squeeze()
             
         if max_val>=0.5:
-            if save_all_visual:
-                data_dict[image_name]['ridge_seg_path']=os.path.join(save_all_dir,image_name)
-                # Construct the file path for saving the image
-                ridge_seg_path = os.path.join(save_all_dir,image_name)
+            # Construct the file path for saving the image
+            ridge_seg_path = os.path.join(save_all_dir,image_name)
 
-                # Squeeze the tensor to remove any extra dimensions
-                output_img = output_img.squeeze()
+            # Squeeze the tensor to remove any extra dimensions
+            output_img = output_img.squeeze()
 
-                # Convert the tensor to a PIL image
-                # Assuming the tensor is in the range [0, 1)
-                output_img_pil = Image.fromarray((output_img.numpy() * 255).astype('uint8'))
+            # Convert the tensor to a PIL image
+            # Assuming the tensor is in the range [0, 1)
+            output_img_pil = Image.fromarray((output_img.numpy() * 255).astype('uint8'))
 
-                # Save the image
-                output_img_pil.save(ridge_seg_path)
+            # Save the image
+            output_img_pil.save(ridge_seg_path)
                 
             # save the ridge seg for visual and sample for stage
             maxval,pred_point=k_max_values_and_indices(output_img.squeeze(),args.ridge_seg_number,r=60,threshold=0.3)

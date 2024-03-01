@@ -25,7 +25,7 @@ model.load_state_dict(
     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
 print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
 model.eval()
-
+# args.split_name='all'
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
@@ -98,7 +98,10 @@ print(f"Accuracy: {acc:.4f}")
 print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
 # Check if the record file exists and load it; if not, initialize an empty dict
+
+
 record_path = './experiments/record.json'
+# record_path = './experiments/shen_record.json'
 if os.path.exists(record_path):
     with open(record_path, 'r') as f:
         record = json.load(f)
