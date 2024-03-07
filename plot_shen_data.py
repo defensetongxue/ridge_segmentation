@@ -51,7 +51,7 @@ for metric in metrics:
     ax.set_xticks(positions)
     ax.set_xticklabels(model_names, fontproperties=font_prop,  ha="center")
     # ax.set_xticklabels(model_names, fontproperties=font_prop, rotation=45, ha="right")
-    ax.set_title(f'{metric} per Model', fontproperties=font_prop)
+    ax.set_title(f'{metric}', fontproperties=font_prop)
 
     plt.tight_layout()
     plt.savefig(os.path.join(experiments_dir, f'{metric}_single_split.jpg'), dpi=300, bbox_inches='tight')
