@@ -10,6 +10,7 @@ from PIL import Image
 from  util.metric import Metrics
 from torchvision.transforms import ToTensor,InterpolationMode,Resize
 import numpy as np
+
 # Initialize the folder
 os.makedirs("checkpoints",exist_ok=True)
 os.makedirs("experiments",exist_ok=True)
@@ -35,7 +36,7 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=CustomDatset(args.data_path,'train',split_name=args.split_name,factor=args.configs['model']['factor'])
+train_dataset=CustomDatset("../autodl-tmp/HVDROP/",factor=args.configs['model']['factor'])
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders

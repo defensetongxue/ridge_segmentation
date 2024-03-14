@@ -1,6 +1,6 @@
 {
     "num_works": 15,
-    "save_name":"hrnet_large.pth",
+    "save_name":"pretrain.pth",
     "model": {
         "factor":0.25,
         "record_name":"HRNet_large",

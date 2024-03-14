@@ -35,7 +35,7 @@ def get_config():
                         help='load the exit checkpoint.')
     # config file 
     parser.add_argument('--cfg', help='experiment configuration filename',
-                        default="./config_file/hrnet_w48.json", type=str)
+                        default="./config_file/pretrain.json", type=str)
     
     args = parser.parse_args()
     # Merge args and config file 

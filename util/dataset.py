@@ -9,13 +9,10 @@ import numpy as np
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 class ridge_segmentataion_dataset(Dataset):
-    def __init__(self, data_path, split, split_name,factor=0.25):
-        with open(os.path.join(data_path, 'ridge_seg_patchtify', 'split', f'{split_name}.json'), 'r') as f:
-            split_list=json.load(f)
-        with open(os.path.join(data_path, 'ridge_seg_patchtify', 'annotations.json'), 'r') as f:
-            self.data_dict=json.load(f)
-        self.split_list=split_list[split]
-        self.split = split
+    def __init__(self, data_path,factor):
+        self.image_list=os.listdir(os.path.join(data_path, 'ridge_seg_patchtify','images'))
+        self.image_path=os.path.join(data_path, 'ridge_seg_patchtify','images')
+        self.mask_path=os.path.join(data_path, 'ridge_seg_patchtify','masks')
         self.transforms = transforms.Compose([
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomVerticalFlip(p=0.5),
@@ -33,34 +30,28 @@ class ridge_segmentataion_dataset(Dataset):
             )])
         self.totenor=transforms.ToTensor()
     def __getitem__(self, idx):
-        data_name = self.split_list[idx]
-        data = self.data_dict[data_name]
+        image_name = self.image_list[idx]
         
-        img = Image.open(data['image_path']).convert('RGB')
-        if data['mask_path']:
-            gt = Image.open(data['mask_path'])
-            if self.mask_resize:
-                gt=self.mask_resize(gt)
-        else:
-            raise
-            patch_size = data['patch_size']
-            gt = Image.new('L', (patch_size, patch_size))  # create a blank (black) image
-
-        if self.split == "train":
-            seed = torch.seed()
-            torch.manual_seed(seed)
-            img = self.transforms(img)
-            torch.manual_seed(seed)
-            gt = self.transforms(gt)
+        img = Image.open(os.path.join(self.image_path,image_name)).convert('RGB')
+        
+        gt = Image.open(os.path.join(self.mask_path,image_name[:-3]+'png')).convert('L')
+        if self.mask_resize:
+            gt=self.mask_resize(gt)
+        
+        seed = torch.seed()
+        torch.manual_seed(seed)
+        img = self.transforms(img)
+        torch.manual_seed(seed)
+        gt = self.transforms(gt)
 
         # Convert mask and pos_embed to tensor
         gt = self.totenor(gt)
         gt[gt != 0] = 1.
         img = self.img_transforms(img)
-        return img, gt, data_name
+        return img, gt, image_name
 
     def __len__(self):
-        return len(self.split_list)
+        return len(self.image_list)
 
 class ridge_trans_dataset(Dataset):
     def __init__(self, data_path, split, split_name):
