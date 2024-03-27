@@ -2,6 +2,7 @@
     "num_works": 15,
     "save_name":"hrnet_large.pth",
     "model": {
+        "factor":0.25,
         "record_name":"HRNet_large",
         "loss_func": "BCELoss",
         "loss_weight":2.0,
@@ -78,7 +79,7 @@
         "epochs":100
     },
     "train": {
-        "batch_size":16,
+        "batch_size":8,
         "test_bc":4,
         "begin_epoch": 0,
         "end_epoch": 100,
