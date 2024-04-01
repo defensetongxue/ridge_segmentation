@@ -82,7 +82,7 @@
         "batch_size":24,
         "test_bc":4,
         "begin_epoch": 0,
-        "end_epoch": 100,
+        "end_epoch": 40,
         "early_stop": 30,
         "optimizer": "adamw",
         "lr": 0.001,

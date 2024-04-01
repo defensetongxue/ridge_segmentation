@@ -3,17 +3,8 @@ import argparse,json
 def get_config():
     parser = argparse.ArgumentParser()
     # cleansing
-    parser.add_argument('--data_path', type=str, default='../autodl-tmp/dataset_ROP',
+    parser.add_argument('--data_path', type=str, default='../autodl-tmp/HVDROPDB-RIDGE',
                         help='Path to the target folder to store the processed datasets.')
-    parser.add_argument('--generate_ridge_diffusion', type=bool, default=False,
-                        help='if generate the ridge cooridinate from json src.')
-    parser.add_argument('--generate_mask', type=bool, default=False,
-                        help='if generate the ridge cooridinate from json src.')
-    
-    # split
-    parser.add_argument('--split_name', type=str, default='clr_1',
-                        help='which split to use.')
-    
     # Model
     parser.add_argument('--patch_size', type=int, default=400,
                         help='Name of the model architecture to be used for training.')
@@ -22,7 +13,7 @@ def get_config():
     parser.add_argument('--ridge_seg_number', type=int, default=8,
                         help='Name of the model architecture to be used for training.')
     # train and test
-    parser.add_argument('--save_dir', type=str, default="./checkpoints",
+    parser.add_argument('--save_dir', type=str, default="./pretrained",
                         help='Name of the file to save the best model during training.')
     parser.add_argument('--result_path', type=str, default="experiments",
                         help='Path to the visualize result or the pytorch model will be saved.')
