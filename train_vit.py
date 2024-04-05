@@ -38,10 +38,10 @@ train_dataset=CustomDatset(args.data_path,split='train',split_name=args.split_na
 val_dataset=CustomDatset(args.data_path,split='val',split_name=args.split_name)
 # Create the data loaders
 train_loader = DataLoader(train_dataset, 
-                          batch_size=4,
+                          batch_size=args.configs['train']["batch_size"],
                           shuffle=True, num_workers=args.configs['num_works'])
 val_loader = DataLoader(val_dataset,
-                        batch_size=4,
+                        batch_size=args.configs['train']["batch_size"],
                         shuffle=False, num_workers=args.configs['num_works'])
 print("There is  patch size".format(args.configs['train']['batch_size']))
 print(f"Train: {len(train_loader)}, Val: {len(val_loader)}")

@@ -14,7 +14,7 @@
         "epochs":100
     },
     "train": {
-        "batch_size": 4,
+        "batch_size": 8,
         "begin_epoch": 0,
         "end_epoch": 100,
         "early_stop": 30,
