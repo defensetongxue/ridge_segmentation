@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, roc_auc_score,recall_score
 from config import get_config
-from util import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
 from PIL import Image
 from models import get_transUnet
 import os,time,json
@@ -25,7 +24,7 @@ model.load_state_dict(
     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
 print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
 model.eval()
-args.split_name='all'
+args.split_name='clr'
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
@@ -99,8 +98,6 @@ print(f"AUC: {auc:.4f}")
 print(f"Recall: {recall:.4f}")
 # Check if the record file exists and load it; if not, initialize an empty dict
 
-
-# record_path = './experiments/record_fs.json'
 record_path = './experiments/shen_record.json'
 if os.path.exists(record_path):
     with open(record_path, 'r') as f:
@@ -112,11 +109,11 @@ else:
 args = get_config()  # Make sure this returns the correct configuration
 if 'transunet' not in record:
     record['transunet'] = {}
-key=str(args.lr)+str(args.wd)
-if key not in record['transunet']:
-    record['transunet'][key]={}
+parameter_key=f"{str(args.lr)}_{str(args.wd)}"
+if parameter_key not in record[args.configs['model']['record_name']]:
+    record[args.configs['model']['record_name']][parameter_key]={}
 # Correct the syntax for storing metrics in the dictionary
-record['transunet'][key][args.split_name] = {
+record[args.configs['model']['record_name']][parameter_key][args.split_name] = {
     "Accuracy": f"{acc:.4f}",
     "AUC": f"{auc:.4f}",
     "Recall": f"{recall:.4f}"

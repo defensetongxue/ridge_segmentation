@@ -13,4 +13,4 @@ def p_info(a):
 p_info(split_list)
 p_info(all_split)
 with open(os.path.join(data_path,'split','all.json'),'w') as f:
-    json.dump(all_split,frozenset)
+    json.dump(all_split,f)

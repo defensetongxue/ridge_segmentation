@@ -116,8 +116,11 @@ args = get_config()  # Make sure this returns the correct configuration
 if args.configs['model']['record_name'] not in record:
     record[args.configs['model']['record_name']] = {}
 
+parameter_key=f"{str(args.lr)}_{str(args.wd)}"
+if parameter_key not in record[args.configs['model']['record_name']]:
+    record[args.configs['model']['record_name']][parameter_key]={}
 # Correct the syntax for storing metrics in the dictionary
-record[args.configs['model']['record_name']][args.split_name] = {
+record[args.configs['model']['record_name']][parameter_key][args.split_name] = {
     "Accuracy": f"{acc:.4f}",
     "AUC": f"{auc:.4f}",
     "Recall": f"{recall:.4f}"
