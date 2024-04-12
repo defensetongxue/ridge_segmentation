@@ -110,10 +110,10 @@ args = get_config()  # Make sure this returns the correct configuration
 if 'transunet' not in record:
     record['transunet'] = {}
 parameter_key=f"{str(args.lr)}_{str(args.wd)}"
-if parameter_key not in record[args.configs['model']['record_name']]:
-    record[args.configs['model']['record_name']][parameter_key]={}
+if parameter_key not in record['transunet']:
+    record['transunet'][parameter_key]={}
 # Correct the syntax for storing metrics in the dictionary
-record[args.configs['model']['record_name']][parameter_key][args.split_name] = {
+record['transunet'][parameter_key][args.split_name] = {
     "Accuracy": f"{acc:.4f}",
     "AUC": f"{auc:.4f}",
     "Recall": f"{recall:.4f}"
