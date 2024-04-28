@@ -19,7 +19,14 @@ np.random.seed(0)
 
 # Parse arguments
 args = get_config()
-
+print(args.using_HVD,type(args.using_HVD))
+if args.using_HVD:
+    train_path="../autodl-tmp/HVDROPDB-RIDGE"
+    save_epoch_path='./experiments/hvd.json'
+    raise
+else:
+    train_path="../autodl-tmp/dataset_ROP"
+    save_epoch_path='./experiments/nohvd.json'
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
 os.makedirs(result_path,exist_ok=True)
@@ -36,7 +43,7 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=CustomDatset("../autodl-tmp/HVDROP/",factor=args.configs['model']['factor'])
+train_dataset=CustomDatset(train_path,factor=args.configs['model']['factor'])
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders
@@ -75,7 +82,7 @@ for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
     val_loss,metric = val_epoch(model, val_loader, criterion, device,metric,mask)
-    metric._save_epoch(epoch,'./experiements/hvd.json')
+    metric._save_epoch(epoch,save_epoch_path)
     end_time = time.time()  # Record the end time of the epoch
     elapsed_time = end_time - start_time  # Calculate the elapsed time
     elapsed_hours = elapsed_time / 3600  # Convert elapsed time to hours
@@ -86,17 +93,17 @@ for epoch in range(last_epoch, total_epoches):
     
     print(metric)
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
-    if metric.image_auc > max_auc:
-        save_epoch=epoch
-        max_auc=metric.image_auc
-        early_stop_counter = 0
-        torch.save(model.state_dict(),
-                   os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
-        print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
-    else:
-        early_stop_counter+=1
-        if early_stop_counter>args.configs['train']["early_stop"]:
-            break
+    # if metric.image_auc > max_auc:
+    #     save_epoch=epoch
+    #     max_auc=metric.image_auc
+    #     early_stop_counter = 0
+    #     torch.save(model.state_dict(),
+    #                os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
+    #     print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
+    # else:
+    #     early_stop_counter+=1
+    #     if early_stop_counter>args.configs['train']["early_stop"]:
+    #         break
     metric.reset()
 # model.load_state_dict(
 #     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
