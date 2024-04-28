@@ -80,5 +80,27 @@ class Metrics:
         # Save the updated data back to the file
         with open(save_path, 'w') as file:
             json.dump(existing_data, file, indent=4)
+    def _save_epoch(self, save_epoch, save_path='./record.json'):
+        res = {
+            "image_accuracy": round(self.image_acc, 4),
+            "image_auc": round(self.image_auc, 4),
+            "image_recall": round(self.image_recall, 4),
+        }
+
+
+        # Check if the file exists and load its content if it does
+        if os.path.exists(save_path):
+            with open(save_path, 'r') as file:
+                existing_data = json.load(file)
+        else:
+            existing_data = {}
+
+        # Append the new data
+        existing_data[save_epoch]=res
+
+        # Save the updated data back to the file
+        with open(save_path, 'w') as file:
+            json.dump(existing_data, file, indent=4)
             
+                  
             

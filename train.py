@@ -75,7 +75,7 @@ for epoch in range(last_epoch, total_epoches):
     start_time = time.time()  # Record the start time of the epoch
     train_loss = train_epoch(model, optimizer, train_loader, criterion, device,lr_scheduler,epoch)
     val_loss,metric = val_epoch(model, val_loader, criterion, device,metric,mask)
-    
+    metric._save_epoch(epoch,'./experiements/hvd.json')
     end_time = time.time()  # Record the end time of the epoch
     elapsed_time = end_time - start_time  # Calculate the elapsed time
     elapsed_hours = elapsed_time / 3600  # Convert elapsed time to hours
