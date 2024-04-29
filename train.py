@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from config import get_config
 from util import get_instance, train_epoch, val_epoch,get_optimizer,losses,lr_sche
-from util import ridge_segmentataion_dataset as CustomDatset
+from util.dataset import HVD_dataset,ridge_segmentataion_dataset
 from util import ridge_finetone_val
 import models
 import os,time
@@ -23,7 +23,6 @@ print(args.using_HVD,type(args.using_HVD))
 if args.using_HVD:
     train_path="../autodl-tmp/HVDROPDB-RIDGE"
     save_epoch_path='./experiments/hvd.json'
-    raise
 else:
     train_path="../autodl-tmp/dataset_ROP"
     save_epoch_path='./experiments/nohvd.json'
@@ -43,7 +42,10 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=CustomDatset(train_path,factor=args.configs['model']['factor'])
+if args.using_HVD:
+    train_dataset=HVD_dataset(train_path,factor=args.configs['model']['factor'])
+else:
+    train_dataset=ridge_segmentataion_dataset(args.data_path,split_name='clr_1',split='train',factor=args.configs['model']['factor'])
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders
