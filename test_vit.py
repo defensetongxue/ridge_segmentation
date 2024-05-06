@@ -10,7 +10,6 @@ from torchvision import transforms
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 args = get_config()
-args.data_path='../autodl-tmp/ROP_shen'
 # Init the result file to store the pytorch model and other mid-result
 result_path = args.result_path
 os.makedirs(result_path,exist_ok=True)
@@ -100,7 +99,7 @@ print(f"Recall: {recall:.4f}")
 # Check if the record file exists and load it; if not, initialize an empty dict
 
 
-record_path = './experiments/record_sz.json'
+record_path = './experiments/record.json'
 if os.path.exists(record_path):
     with open(record_path, 'r') as f:
         record = json.load(f)

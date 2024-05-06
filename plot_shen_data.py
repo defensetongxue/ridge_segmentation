@@ -16,7 +16,7 @@ font_path = 'arial.ttf'
 font_prop = FontProperties(fname=font_path, size=6)
 
 # Load metrics from JSON file for a single split
-json_path = 'experiments/shen_record.json'
+json_path = 'experiments/record_sz.json'
 with open(json_path, 'r') as f:
     results = json.load(f)
 
