@@ -11,7 +11,7 @@ def compress_scores(value, lower_bound=0.6):
     return value
 
 # Load metrics from JSON file
-json_path = 'experiments/record.json'
+json_path = './experiments/result_foshan_record.json'
 with open(json_path, 'r') as f:
     results = json.load(f)
 

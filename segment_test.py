@@ -28,14 +28,12 @@ model.load_state_dict(
     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
 print("load the checkpoint in {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
 model.eval()
-
 # Test the model and save visualizations
 with open(os.path.join(args.data_path,'split',f'{args.split_name}.json'),'r') as f:
     split_list=json.load(f)['test']
 with open(os.path.join(args.data_path,'annotations.json'),'r') as f:
     data_dict=json.load(f)
 img_transforms=transforms.Compose([
-            transforms.Resize((512,512)),
             transforms.ToTensor(),
             transforms.Normalize(
                 mean=IMAGENET_DEFAULT_MEAN,std=IMAGENET_DEFAULT_STD

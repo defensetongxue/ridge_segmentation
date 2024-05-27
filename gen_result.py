@@ -2,11 +2,11 @@ import json
 import numpy as np
 
 # Load the data
-with open('./experiments/record.json') as f:
+with open('./experiments/shen_record.json') as f:
     record_original = json.load(f)
 
 # Prepare to save the processed data
-save_path = './experiments/result_record.json'
+save_path = './experiments/result_shen_record.json'
 record = {}
 
 # Process each model
