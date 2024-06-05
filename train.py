@@ -36,7 +36,7 @@ lr_scheduler=lr_sche(config=args.configs["lr_strategy"])
 last_epoch = args.configs['train']['begin_epoch']
 
 # Load the datasets
-train_dataset=CustomDatset("../autodl-tmp/HVDROP/",factor=args.configs['model']['factor'])
+train_dataset=CustomDatset("../autodl-tmp/HVDROPDB-RIDGE",factor=args.configs['model']['factor'])
 val_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='val',postive_cnt=1e5)
 test_dataset=ridge_finetone_val(args.data_path,split_name=args.split_name,split='test',postive_cnt=1e5)
 # Create the data loaders
@@ -70,6 +70,7 @@ mask=ToTensor()(mask)
 mask[mask>0]=1
 mask=mask.unsqueeze(0)
 # Training and validation loop
+record=[]
 for epoch in range(last_epoch, total_epoches):
     
     start_time = time.time()  # Record the start time of the epoch
@@ -83,7 +84,13 @@ for epoch in range(last_epoch, total_epoches):
           f"Train Loss: {train_loss:.6f}, "
           f"Val Loss: {val_loss:.6f} "
           f"Time: {elapsed_hours:.2f} hours")
-    
+
+    record.append({
+        'epoch':epoch,
+        'acc':metric.image_acc,
+        'auc':metric.image_auc,
+        'reacall':metric.image_recall
+    })
     print(metric)
     # Update the learning rate if using ReduceLROnPlateau or CosineAnnealingLR
     if metric.image_auc > max_auc:
@@ -91,13 +98,17 @@ for epoch in range(last_epoch, total_epoches):
         max_auc=metric.image_auc
         early_stop_counter = 0
         torch.save(model.state_dict(),
-                   os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
-        print("Model saved as {}".format(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}")))
+                   os.path.join(args.save_dir,f"HVD_{args.configs['save_name']}"))
+        print("Model saved as {}".format(os.path.join(args.save_dir,f"HVD_{args.configs['save_name']}")))
     else:
         early_stop_counter+=1
         if early_stop_counter>args.configs['train']["early_stop"]:
             break
     metric.reset()
+    # break
+import json
+with open('./hvd.json','w') as f:
+    json.dump(record,f)
 # model.load_state_dict(
 #     torch.load(os.path.join(args.save_dir,f"{args.split_name}_{args.configs['save_name']}"))
 # # )

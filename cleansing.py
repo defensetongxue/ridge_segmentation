@@ -71,4 +71,4 @@ if __name__=='__main__':
     args=get_config()
     
     
-    generate_segmentation_mask("../autodl-tmp/HVDROP/",args.patch_size,args.stride)
+    generate_segmentation_mask("../autodl-tmp/HVDROPDB-RIDGE",args.patch_size,args.stride)
