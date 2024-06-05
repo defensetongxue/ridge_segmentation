@@ -9,7 +9,8 @@ def get_config():
                         help='if generate the ridge cooridinate from json src.')
     parser.add_argument('--generate_mask', type=bool, default=False,
                         help='if generate the ridge cooridinate from json src.')
-    
+    parser.add_argument('--using_HVD',action='store_false', default=True,
+                        help='if generate the ridge cooridinate from json src.')
     # split
     parser.add_argument('--split_name', type=str, default='clr_1',
                         help='which split to use.')
