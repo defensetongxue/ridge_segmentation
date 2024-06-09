@@ -11,3 +11,4 @@ ring.py
 .vscode
 json_src
 *.npz
+ring.py
