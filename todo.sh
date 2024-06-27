@@ -1,6 +1,6 @@
 
 # # python generate_mask.py
-# python test.py --cfg ./config_file/hrnet_w48.json --split_name clr_1
-python test.py --cfg ./config_file/hrnet_w48.json --split_name clr_2
-python test.py --cfg ./config_file/hrnet_w48.json --split_name clr_3
-python test.py --cfg ./config_file/hrnet_w48.json --split_name clr_4
+# python segment_test.py --cfg ./config_file/hrnet_w48.json --split_name 1
+python segment_test.py --cfg ./config_file/hrnet_w48.json --split_name 2
+python segment_test.py --cfg ./config_file/hrnet_w48.json --split_name 3
+python segment_test.py --cfg ./config_file/hrnet_w48.json --split_name 4
